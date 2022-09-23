@@ -2,6 +2,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Defines {
+    public enum TokenType {
+        IDENFR, INTCON, STRCON, MAINTK, CONSTTK, INTTK, BREAKTK, CONTINUETK, IFTK,
+        ELSETK, NOT, AND, OR, WHILETK, GETINTTK, PRINTFTK, RETURNTK, PLUS, MINU,
+        VOIDTK, MULT, DIV, MOD, LSS, LEQ, GRE, GEQ, EQL, NEQ, ASSIGN, SEMICN,
+        COMMA, LPARENT, RPARENT, LBRACK, RBRACK, LBRACE, RBRACE,
+        CompUnit, Decl, ConstDecl, BType, ConstDef, ConstInitVal, VarDecl, VarDef,
+        InitVal, FuncDef, MainFuncDef, FuncType, FuncFParams, FuncFParam, Block, BlockItem,
+        Stmt, Exp, Cond, LVal, PrimaryExp, Number, UnaryExp, UnaryOp, FuncRParams,
+        MulExp, AddExp, RelExp, EqExp, LAndExp, LOrExp, ConstExp
+    }
     public static ArrayList<String> reserve = new ArrayList<String>() {
         {
             add("main");
@@ -100,6 +110,10 @@ public class Defines {
             put("\n", "ENTERTK");
         }
     };
+    
+    public static boolean isTerminal(TokenType tokenType) {
+        return tokenType.ordinal() < 38;
+    }
     
     public static String getReserveStr(String str) {
         if (reserveStr.containsKey(str)) {
