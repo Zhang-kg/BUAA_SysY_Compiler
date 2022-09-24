@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.And;
-
 import java.util.ArrayList;
 
 public class LexicalAnalyser {
@@ -26,7 +24,7 @@ public class LexicalAnalyser {
                     filePrinter.outPrintln("NEQ !=");
                     token = "!=";
                     tokenType = Defines.TokenType.NEQ;
-                    i+=2;
+                    i += 2;
                 } else {
                     i++;
                     filePrinter.outPrintln("NOT !");
@@ -34,21 +32,21 @@ public class LexicalAnalyser {
                 }
             } else if (token.equals("&")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '&') {
-                    i+=2;
+                    i += 2;
                     filePrinter.outPrintln("AND &&");
                     token = "&&";
                     tokenType = Defines.TokenType.AND;
                 }
             } else if (token.equals("|")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '|') {
-                    i+=2;
+                    i += 2;
                     filePrinter.outPrintln("OR ||");
                     token = "||";
                     tokenType = Defines.TokenType.OR;
                 }
             } else if (token.equals("=")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
-                    i+=2;
+                    i += 2;
                     filePrinter.outPrintln("EQL ==");
                     token = "==";
                     tokenType = Defines.TokenType.EQL;
@@ -59,7 +57,7 @@ public class LexicalAnalyser {
                 }
             } else if (token.equals(">")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
-                    i+=2;
+                    i += 2;
                     filePrinter.outPrintln("GEQ >=");
                     token = ">=";
                     tokenType = Defines.TokenType.GEQ;
@@ -70,7 +68,7 @@ public class LexicalAnalyser {
                 }
             } else if (token.equals("<")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
-                    i+=2;
+                    i += 2;
                     filePrinter.outPrintln("LEQ <=");
                     token = "<=";
                     tokenType = Defines.TokenType.LEQ;
@@ -137,7 +135,9 @@ public class LexicalAnalyser {
                     token += this.inputStr.charAt(i);
                     i++;
                 }
-                if (i < this.inputStr.length() && this.inputStr.charAt(i) == '\"') i++;
+                if (i < this.inputStr.length() && this.inputStr.charAt(i) == '\"') {
+                    i++;
+                }
                 token += "\"";
                 filePrinter.outPrintln("STRCON " + token);
                 tokenType = Defines.TokenType.STRCON;

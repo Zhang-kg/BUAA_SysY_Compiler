@@ -20,4 +20,16 @@ public class Token {
     public String getTokenString() {
         return tokenString;
     }
+    
+    public void setTokenType(Defines.TokenType tokenType) {
+        this.tokenType = tokenType;
+    }
+    
+    public void addSons(Token son) {
+        this.sons.add(son);
+    }
+    
+    public ArrayList<Token> getSons() {
+        return sons;
+    }
 }

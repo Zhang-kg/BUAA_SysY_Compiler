@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 
 public class FilePrinter {
     private static PrintWriter out = null;
-    private final static FilePrinter FILE_PRINTER = new FilePrinter();
+    private static final FilePrinter FILE_PRINTER = new FilePrinter();
     
     private FilePrinter(){
         File outFile = new File("./output.txt");

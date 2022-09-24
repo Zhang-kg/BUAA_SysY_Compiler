@@ -6,11 +6,14 @@ public class Compiler {
         String ans = basicScanner.getAns();
         LexicalAnalyser lexicalAnalyser = new LexicalAnalyser(ans);
         ArrayList<Token> tokens = lexicalAnalyser.getTokens();
+        SyntaxAnalyser syntaxAnalyser = new SyntaxAnalyser(tokens);
+        Token root = syntaxAnalyser.getRoot();
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
-        for (Token token : tokens) {
-            filePrinter.outPrintlnNew(token.getTokenType() + " " + token.getTokenString());
-            //System.out.println(token.getTokenType() + " " + token.getTokenString());
-        }
+        TreePrinter treePrinter = new TreePrinter(root);
+        //for (Token token : tokens) {
+        //    filePrinter.outPrintlnNew(token.getTokenType() + " " + token.getTokenString());
+        //    //System.out.println(token.getTokenType() + " " + token.getTokenString());
+        //}
         
         filePrinter.closeOut();
     }
