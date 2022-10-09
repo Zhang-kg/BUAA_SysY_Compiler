@@ -1,4 +1,13 @@
+package NonTerminals;
+
+public class SAbk {
+    /*
+    import com.sun.media.sound.DLSSample;
+import org.w3c.dom.ls.LSSerializer;
+
 import java.util.ArrayList;
+import java.util.logging.LoggingPermission;
+
 // 语法分析
 
 public class SyntaxAnalyser {
@@ -6,11 +15,11 @@ public class SyntaxAnalyser {
     private Token root;
     private int cur_pos;
     private static boolean isParsed = false;
-    
+
     public SyntaxAnalyser(ArrayList<Token> tokens) {
         this.tokens = tokens;
     }
-    
+
     public void parseSyntax() {
         isParsed = true;
         cur_pos = 0;
@@ -66,12 +75,12 @@ public class SyntaxAnalyser {
             e.printStackTrace();
         }
     }
-    
+
     public Token getRoot() {
         if (!isParsed) parseSyntax();
         return root;
     }
-    
+
     private Token parseDecl() throws SyntaxException {
         Token decl = new Token(0, TokenType.Decl, "");
         if (cur_pos < tokens.size()) {
@@ -88,7 +97,7 @@ public class SyntaxAnalyser {
         }
         return decl;
     }
-    
+
     private Token parseConstDecl() throws SyntaxException {
         Token constDecl = new Token(0, TokenType.ConstDecl, "");
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.CONSTTK) {
@@ -127,7 +136,7 @@ public class SyntaxAnalyser {
         cur_pos++;  // accept ;
         return constDecl;
     }
-    
+
     private Token parseBType() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.INTTK) {
             //return null;
@@ -137,7 +146,7 @@ public class SyntaxAnalyser {
         cur_pos++;
         return bType;
     }
-    
+
     private Token parseConstDef() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
             //return null;
@@ -175,7 +184,7 @@ public class SyntaxAnalyser {
         constDef.addSons(constInitVal);
         return constDef;
     }
-    
+
     private Token parseConstInitVal() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -224,7 +233,7 @@ public class SyntaxAnalyser {
         }
         return constInitVal;
     }
-    
+
     private Token parseVarDecl() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -255,7 +264,7 @@ public class SyntaxAnalyser {
         cur_pos++;  // accept ;
         return varDecl;
     }
-    
+
     private Token parseVarDef() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
             //return null;
@@ -291,7 +300,7 @@ public class SyntaxAnalyser {
         }
         return varDef;
     }
-    
+
     private Token parseInitVal() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -340,7 +349,7 @@ public class SyntaxAnalyser {
         }
         return initVal;
     }
-    
+
     private Token parseFuncDef() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -379,11 +388,11 @@ public class SyntaxAnalyser {
             //return null;
             throw new SyntaxException("FuncDef: undefine, maybe messing )");
         }
-        
+
         funcDef.addSons(parseBlock());
         return funcDef;
     }
-    
+
     private Token parseMainFuncDef() throws SyntaxException {
         if (cur_pos + 3 >= tokens.size()) {
             //return null;
@@ -425,7 +434,7 @@ public class SyntaxAnalyser {
         mainFuncDef.addSons(parseBlock());
         return mainFuncDef;
     }
-    
+
     private Token parseFuncType() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -442,7 +451,7 @@ public class SyntaxAnalyser {
         cur_pos++;  // accept type (void or int)
         return funcType;
     }
-    
+
     private Token parseFuncFParams() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -469,7 +478,7 @@ public class SyntaxAnalyser {
         }
         return funcFParams;
     }
-    
+
     private Token parseFuncFParam() throws SyntaxException {
         if (cur_pos + 1 >= tokens.size()) {
             //return null;
@@ -522,7 +531,7 @@ public class SyntaxAnalyser {
         }
         return funcFParam;
     }
-    
+
     private Token parseBlock() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LBRACE) {
             //return null;
@@ -561,7 +570,7 @@ public class SyntaxAnalyser {
         cur_pos++;  // accept }
         return block;
     }
-    
+
     private Token parseBlockItem() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -585,7 +594,7 @@ public class SyntaxAnalyser {
         }
         return blockItem;
     }
-    
+
     private Token parseStmt() throws SyntaxException {
         //System.out.println(debug + " " + cur_pos);
         //debug++;
@@ -798,7 +807,7 @@ public class SyntaxAnalyser {
         }
         return stmt;
     }
-    
+
     private Token parseExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -808,7 +817,7 @@ public class SyntaxAnalyser {
         exp.addSons(parseAddExp());
         return exp;
     }
-    
+
     private Token parseCond() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -818,7 +827,7 @@ public class SyntaxAnalyser {
         cond.addSons(parseLOrExp());
         return cond;
     }
-    
+
     private Token parseLVal() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
             //return null;
@@ -857,7 +866,7 @@ public class SyntaxAnalyser {
         }
         return lVal;
     }
-    
+
     private Token parsePrimaryExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -881,7 +890,7 @@ public class SyntaxAnalyser {
         }
         return primaryExp;
     }
-    
+
     private Token parseNumber() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.INTCON) {
             //return null;
@@ -892,7 +901,7 @@ public class SyntaxAnalyser {
         cur_pos++;  // accept IntConst
         return number;
     }
-    
+
     private Token parseUnaryExp() throws SyntaxException {
         // PrimaryExp 和 Ident 分支的FIRST集合产生冲突，向后看第二个token，如果是(则为分支2，否则进入分支1(PrimaryExp)
         if (cur_pos >= tokens.size()) {
@@ -926,7 +935,7 @@ public class SyntaxAnalyser {
                     }
                     unaryExp.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept )
-                    
+
                 } else {
                     //return null;
                     throw new SyntaxException("UnaryExp: undefine maybe missing )");
@@ -952,7 +961,7 @@ public class SyntaxAnalyser {
         }
         return unaryExp;
     }
-    
+
     private Token parseUnaryOp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -970,7 +979,7 @@ public class SyntaxAnalyser {
         }
         return unaryOp;
     }
-    
+
     private Token parseFuncRParams() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -992,7 +1001,7 @@ public class SyntaxAnalyser {
         }
         return funcRParams;
     }
-    
+
     private Token parseMulExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1021,7 +1030,7 @@ public class SyntaxAnalyser {
         }
         return mulExp;
     }
-    
+
     private Token parseAddExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1049,7 +1058,7 @@ public class SyntaxAnalyser {
         }
         return addExp;
     }
-    
+
     private Token parseRelExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1075,7 +1084,7 @@ public class SyntaxAnalyser {
         }
         return relExp;
     }
-    
+
     private Token parseEqExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1099,7 +1108,7 @@ public class SyntaxAnalyser {
         }
         return eqExp;
     }
-    
+
     private Token parseLAndExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1122,7 +1131,7 @@ public class SyntaxAnalyser {
         }
         return lAndExp;
     }
-    
+
     private Token parseLOrExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1145,7 +1154,7 @@ public class SyntaxAnalyser {
         }
         return lOrExp;
     }
-    
+
     private Token parseConstExp() throws SyntaxException {
         if (cur_pos >= tokens.size()) {
             //return null;
@@ -1155,4 +1164,7 @@ public class SyntaxAnalyser {
         constExp.addSons(parseAddExp());
         return constExp;
     }
+}
+
+     */
 }
