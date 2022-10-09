@@ -3,10 +3,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BasicScanner {
     private String ans = "";
-    
+    private int lineNumber = 1;
+    private HashMap<Integer, Integer> lineStartNumbers = new HashMap<>();
+    private HashMap<Integer, Integer> lineEndNumbers = new HashMap<>();
+
     public BasicScanner() {
         File inFile = new File("./testfile.txt");
         BufferedReader in = null;
@@ -26,6 +31,7 @@ public class BasicScanner {
                 if (null == (str = in.readLine())) {
                     break;
                 } else {
+                    lineStartNumbers.put(lineNumber, ans.length());
                     int i = 0;
                     while (i < str.length()) {
                         if (inLongNote) {
@@ -71,6 +77,8 @@ public class BasicScanner {
                             }
                         }
                     }
+                    lineEndNumbers.put(lineNumber, ans.length());
+                    lineNumber++;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -80,5 +88,13 @@ public class BasicScanner {
     
     public String getAns() {
         return ans;
+    }
+
+    public HashMap<Integer, Integer> getLineStartNumbers() {
+        return lineStartNumbers;
+    }
+
+    public HashMap<Integer, Integer> getLineEndNumbers() {
+        return lineEndNumbers;
     }
 }

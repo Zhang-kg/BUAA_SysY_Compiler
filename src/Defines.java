@@ -57,59 +57,59 @@ public class Defines {
         }
     };
     
-    public static HashMap<String, String> separatorStr = new HashMap<String, String>() {
-        {
-            put("NOT", "!");
-            put("!", "NOT");
-            put("AND", "&&");
-            put("&&", "AND");
-            put("OR", "||");
-            put("||", "OR");
-            put("PLUS", "+");
-            put("+", "PLUS");
-            put("MINU", "-");
-            put("-", "MINU");
-            put("MULT", "*");
-            put("*", "MULT");
-            put("DIV", "/");
-            put("/", "DIV");
-            put("MOD", "%");
-            put("%", "MOD");
-            put("<", "LSS");
-            put("LSS", "<");
-            put("<=", "LEQ");
-            put("LEQ", "<=");
-            put(">", "GRE");
-            put("GRE", ">");
-            put(">=", "GEQ");
-            put("GEQ", ">=");
-            put("==", "EQL");
-            put("EQL", "==");
-            put("!=", "NEQ");
-            put("NEQ", "!=");
-            put("=", "ASSIGN");
-            put("ASSIGN", "=");
-            put(";", "SEMICN");
-            put("SEMICN", ";");
-            put(",", "COMMA");
-            put("COMMA", ",");
-            put("(", "LPARENT");
-            put("LPARENT", "(");
-            put(")", "RPARENT");
-            put("RPARENT", ")");
-            put("[", "LBRACK");
-            put("LBRACK", "[");
-            put("]", "RBRACK");
-            put("RBRACK", "]");
-            put("{", "LBRACE");
-            put("LBRACE", "{");
-            put("}", "RBRACE");
-            put("RBRACE", "}");
-            put(" ", "BLANK");
-            put("\t", "TABTK");
-            put("\n", "ENTERTK");
-        }
-    };
+//    public static HashMap<String, String> separatorStr = new HashMap<String, String>() {
+//        {
+//            put("NOT", "!");
+//            put("!", "NOT");
+//            put("AND", "&&");
+//            put("&&", "AND");
+//            put("OR", "||");
+//            put("||", "OR");
+//            put("PLUS", "+");
+//            put("+", "PLUS");
+//            put("MINU", "-");
+//            put("-", "MINU");
+//            put("MULT", "*");
+//            put("*", "MULT");
+//            put("DIV", "/");
+//            put("/", "DIV");
+//            put("MOD", "%");
+//            put("%", "MOD");
+//            put("<", "LSS");
+//            put("LSS", "<");
+//            put("<=", "LEQ");
+//            put("LEQ", "<=");
+//            put(">", "GRE");
+//            put("GRE", ">");
+//            put(">=", "GEQ");
+//            put("GEQ", ">=");
+//            put("==", "EQL");
+//            put("EQL", "==");
+//            put("!=", "NEQ");
+//            put("NEQ", "!=");
+//            put("=", "ASSIGN");
+//            put("ASSIGN", "=");
+//            put(";", "SEMICN");
+//            put("SEMICN", ";");
+//            put(",", "COMMA");
+//            put("COMMA", ",");
+//            put("(", "LPARENT");
+//            put("LPARENT", "(");
+//            put(")", "RPARENT");
+//            put("RPARENT", ")");
+//            put("[", "LBRACK");
+//            put("LBRACK", "[");
+//            put("]", "RBRACK");
+//            put("RBRACK", "]");
+//            put("{", "LBRACE");
+//            put("LBRACE", "{");
+//            put("}", "RBRACE");
+//            put("RBRACE", "}");
+//            put(" ", "BLANK");
+//            put("\t", "TABTK");
+//            put("\n", "ENTERTK");
+//        }
+//    };
     
     public static boolean isTerminal(TokenType tokenType) {
         return tokenType.ordinal() < 38;
@@ -122,13 +122,9 @@ public class Defines {
         return "";
     }
     
-    public static boolean isBlank(char c) {
-        return c == ' ' || c == '\t' || c == '\n';
-    }
+
     
-    public static boolean isSeparate(char c) {
-        return separatorStr.containsKey(String.valueOf(c)) || c == '&' || c == '|';
-    }
+
     
     public static boolean isNum(char c) {
         return c >= '0' && c <= '9';

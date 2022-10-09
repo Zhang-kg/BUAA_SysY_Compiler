@@ -1,19 +1,78 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+
+// 词法分析
 
 public class LexicalAnalyser {
     private String inputStr;
     private ArrayList<Token> tokens = new ArrayList<>();
-    
+    public static HashMap<String, String> separatorStr = new HashMap<String, String>() {
+        {
+            put("NOT", "!");
+            put("!", "NOT");
+            put("AND", "&&");
+            put("&&", "AND");
+            put("OR", "||");
+            put("||", "OR");
+            put("PLUS", "+");
+            put("+", "PLUS");
+            put("MINU", "-");
+            put("-", "MINU");
+            put("MULT", "*");
+            put("*", "MULT");
+            put("DIV", "/");
+            put("/", "DIV");
+            put("MOD", "%");
+            put("%", "MOD");
+            put("<", "LSS");
+            put("LSS", "<");
+            put("<=", "LEQ");
+            put("LEQ", "<=");
+            put(">", "GRE");
+            put("GRE", ">");
+            put(">=", "GEQ");
+            put("GEQ", ">=");
+            put("==", "EQL");
+            put("EQL", "==");
+            put("!=", "NEQ");
+            put("NEQ", "!=");
+            put("=", "ASSIGN");
+            put("ASSIGN", "=");
+            put(";", "SEMICN");
+            put("SEMICN", ";");
+            put(",", "COMMA");
+            put("COMMA", ",");
+            put("(", "LPARENT");
+            put("LPARENT", "(");
+            put(")", "RPARENT");
+            put("RPARENT", ")");
+            put("[", "LBRACK");
+            put("LBRACK", "[");
+            put("]", "RBRACK");
+            put("RBRACK", "]");
+            put("{", "LBRACE");
+            put("LBRACE", "{");
+            put("}", "RBRACE");
+            put("RBRACE", "}");
+            put(" ", "BLANK");
+            put("\t", "TABTK");
+            put("\n", "ENTERTK");
+        }
+    };
+
+
     public LexicalAnalyser(String inputStr) {
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
         this.inputStr = inputStr;
         int i = 0;
         while (i < this.inputStr.length()) {
             String token = "";
-            while (i < this.inputStr.length() && Defines.isBlank(this.inputStr.charAt(i))) {
+            while (i < this.inputStr.length() && isBlank(this.inputStr.charAt(i))) {
                 i++;
             }
+            int tokenLineStartNumber;
             if (i < this.inputStr.length()) {
+                tokenLineStartNumber = i;
                 token += String.valueOf(this.inputStr.charAt(i));
             } else {
                 break;
@@ -151,7 +210,7 @@ public class LexicalAnalyser {
                 tokenType = Defines.TokenType.INTCON;
             } else {
                 i++;
-                while (i < this.inputStr.length() && !Defines.isSeparate(this.inputStr.charAt(i))) {
+                while (i < this.inputStr.length() && !isSeparate(this.inputStr.charAt(i))) {
                     token += String.valueOf(this.inputStr.charAt(i));
                     i++;
                 }
@@ -164,7 +223,10 @@ public class LexicalAnalyser {
                     tokenType = Defines.TokenType.valueOf(type);
                 }
             }
-            tokens.add(new Token(0, tokenType, token));
+//            tokens.add(new Token(0, tokenType, token));
+            Token token1 = new Token(tokenType, token);
+            token1.setLineStartNumber(tokenLineStartNumber);
+            tokens.add(token1);
         }
         //filePrinter.closeOut();
     }
@@ -172,5 +234,12 @@ public class LexicalAnalyser {
     public ArrayList<Token> getTokens() {
         return tokens;
     }
-    
+
+    private boolean isBlank(char c) {
+        return c == ' ' || c == '\t' || c == '\n';
+    }
+
+    private boolean isSeparate(char c) {
+        return separatorStr.containsKey(String.valueOf(c)) || c == '&' || c == '|';
+    }
 }

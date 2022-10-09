@@ -7,7 +7,7 @@ public class FilePrinter {
     private static final FilePrinter FILE_PRINTER = new FilePrinter();
     
     private FilePrinter(){
-        File outFile = new File("./output.txt");
+        File outFile = new File("./error.txt");
         try {
             out = new PrintWriter(outFile);
         } catch (FileNotFoundException e) {
@@ -21,10 +21,14 @@ public class FilePrinter {
     
     public void outPrintln(String line) {
         //out.println(line);
-        
+
     }
     
     public void outPrintlnNew(String line) {
+//        out.println(line);
+    }
+
+    public void outPrintlnError(String line) {
         out.println(line);
     }
     

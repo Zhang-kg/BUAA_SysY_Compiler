@@ -4,6 +4,8 @@ import org.w3c.dom.ls.LSSerializer;
 import java.util.ArrayList;
 import java.util.logging.LoggingPermission;
 
+// 语法分析
+
 public class SyntaxAnalyser {
     private ArrayList<Token> tokens;
     private Token root;
