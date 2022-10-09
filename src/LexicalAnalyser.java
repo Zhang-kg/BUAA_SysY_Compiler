@@ -59,7 +59,34 @@ public class LexicalAnalyser {
             put("\n", "ENTERTK");
         }
     };
-
+    public static HashMap<String, String> reserveStr = new HashMap<String, String>() {
+        {
+            put("MAINTK", "main");
+            put("main", "MAINTK");
+            put("CONSTTK", "const");
+            put("const", "CONSTTK");
+            put("INTTK", "int");
+            put("int", "INTTK");
+            put("BREAKTK", "break");
+            put("break", "BREAKTK");
+            put("CONTINUETK", "continue");
+            put("continue", "CONTINUETK");
+            put("IFTK", "if");
+            put("if", "IFTK");
+            put("ELSETK", "else");
+            put("else", "ELSETK");
+            put("WHILETK", "while");
+            put("while", "WHILETK");
+            put("GETINTTK", "getint");
+            put("getint", "GETINTTK");
+            put("PRINTFTK", "printf");
+            put("printf", "PRINTFTK");
+            put("RETURNTK", "return");
+            put("return", "RETURNTK");
+            put("VOIDTK", "void");
+            put("void", "VOIDTK");
+        }
+    };
 
     public LexicalAnalyser(String inputStr) {
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
@@ -77,117 +104,117 @@ public class LexicalAnalyser {
             } else {
                 break;
             }
-            Defines.TokenType tokenType = null;
+            TokenType tokenType = null;
             if (token.equals("!")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
                     filePrinter.outPrintln("NEQ !=");
                     token = "!=";
-                    tokenType = Defines.TokenType.NEQ;
+                    tokenType = TokenType.NEQ;
                     i += 2;
                 } else {
                     i++;
                     filePrinter.outPrintln("NOT !");
-                    tokenType = Defines.TokenType.NOT;
+                    tokenType = TokenType.NOT;
                 }
             } else if (token.equals("&")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '&') {
                     i += 2;
                     filePrinter.outPrintln("AND &&");
                     token = "&&";
-                    tokenType = Defines.TokenType.AND;
+                    tokenType = TokenType.AND;
                 }
             } else if (token.equals("|")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '|') {
                     i += 2;
                     filePrinter.outPrintln("OR ||");
                     token = "||";
-                    tokenType = Defines.TokenType.OR;
+                    tokenType = TokenType.OR;
                 }
             } else if (token.equals("=")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
                     i += 2;
                     filePrinter.outPrintln("EQL ==");
                     token = "==";
-                    tokenType = Defines.TokenType.EQL;
+                    tokenType = TokenType.EQL;
                 } else {
                     i++;
                     filePrinter.outPrintln("ASSIGN =");
-                    tokenType = Defines.TokenType.ASSIGN;
+                    tokenType = TokenType.ASSIGN;
                 }
             } else if (token.equals(">")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
                     i += 2;
                     filePrinter.outPrintln("GEQ >=");
                     token = ">=";
-                    tokenType = Defines.TokenType.GEQ;
+                    tokenType = TokenType.GEQ;
                 } else {
                     i++;
                     filePrinter.outPrintln("GRE >");
-                    tokenType = Defines.TokenType.GRE;
+                    tokenType = TokenType.GRE;
                 }
             } else if (token.equals("<")) {
                 if (i + 1 < this.inputStr.length() && this.inputStr.charAt(i + 1) == '=') {
                     i += 2;
                     filePrinter.outPrintln("LEQ <=");
                     token = "<=";
-                    tokenType = Defines.TokenType.LEQ;
+                    tokenType = TokenType.LEQ;
                 } else {
                     i++;
                     filePrinter.outPrintln("LSS <");
-                    tokenType = Defines.TokenType.LSS;
+                    tokenType = TokenType.LSS;
                 }
             } else if (token.equals("+")) {
                 i++;
                 filePrinter.outPrintln("PLUS +");
-                tokenType = Defines.TokenType.PLUS;
+                tokenType = TokenType.PLUS;
             } else if (token.equals("-")) {
                 i++;
                 filePrinter.outPrintln("MINU -");
-                tokenType = Defines.TokenType.MINU;
+                tokenType = TokenType.MINU;
             } else if (token.equals("*")) {
                 i++;
                 filePrinter.outPrintln("MULT *");
-                tokenType = Defines.TokenType.MULT;
+                tokenType = TokenType.MULT;
             } else if (token.equals("/")) {
                 i++;
                 filePrinter.outPrintln("DIV /");
-                tokenType = Defines.TokenType.DIV;
+                tokenType = TokenType.DIV;
             } else if (token.equals("%")) {
                 i++;
                 filePrinter.outPrintln("MOD %");
-                tokenType = Defines.TokenType.MOD;
+                tokenType = TokenType.MOD;
             } else if (token.equals(";")) {
                 i++;
                 filePrinter.outPrintln("SEMICN ;");
-                tokenType = Defines.TokenType.SEMICN;
+                tokenType = TokenType.SEMICN;
             } else if (token.equals(",")) {
                 i++;
                 filePrinter.outPrintln("COMMA ,");
-                tokenType = Defines.TokenType.COMMA;
+                tokenType = TokenType.COMMA;
             } else if (token.equals("(")) {
                 i++;
                 filePrinter.outPrintln("LPARENT (");
-                tokenType = Defines.TokenType.LPARENT;
+                tokenType = TokenType.LPARENT;
             } else if (token.equals(")")) {
                 i++;
                 filePrinter.outPrintln("RPARENT )");
-                tokenType = Defines.TokenType.RPARENT;
+                tokenType = TokenType.RPARENT;
             } else if (token.equals("[")) {
                 i++;
                 filePrinter.outPrintln("LBRACK [");
-                tokenType = Defines.TokenType.LBRACK;
+                tokenType = TokenType.LBRACK;
             } else if (token.equals("]")) {
                 i++;
                 filePrinter.outPrintln("RBRACK ]");
-                tokenType = Defines.TokenType.RBRACK;
+                tokenType = TokenType.RBRACK;
             } else if (token.equals("{")) {
                 i++;
                 filePrinter.outPrintln("LBRACE {");
-                tokenType = Defines.TokenType.LBRACE;
+                tokenType = TokenType.LBRACE;
             } else if (token.equals("}")) {
                 i++;
                 filePrinter.outPrintln("RBRACE }");
-                tokenType = Defines.TokenType.RBRACE;
+                tokenType = TokenType.RBRACE;
             } else if (token.equals("\"")) {
                 i++;
                 while (i < this.inputStr.length() && this.inputStr.charAt(i) != '\"') {
@@ -199,28 +226,28 @@ public class LexicalAnalyser {
                 }
                 token += "\"";
                 filePrinter.outPrintln("STRCON " + token);
-                tokenType = Defines.TokenType.STRCON;
-            } else if (Defines.isNum(token.charAt(0))) {
+                tokenType = TokenType.STRCON;
+            } else if (isNum(token.charAt(0))) {
                 i++;
-                while (i < this.inputStr.length() && Defines.isNum(this.inputStr.charAt(i))) {
+                while (i < this.inputStr.length() && isNum(this.inputStr.charAt(i))) {
                     token += this.inputStr.charAt(i);
                     i++;
                 }
                 filePrinter.outPrintln("INTCON " + token);
-                tokenType = Defines.TokenType.INTCON;
+                tokenType = TokenType.INTCON;
             } else {
                 i++;
                 while (i < this.inputStr.length() && !isSeparate(this.inputStr.charAt(i))) {
                     token += String.valueOf(this.inputStr.charAt(i));
                     i++;
                 }
-                String type = Defines.getReserveStr(token);
+                String type = getReserveStr(token);
                 if (type.equals("")) {
                     filePrinter.outPrintln("IDENFR " + token);
-                    tokenType = Defines.TokenType.IDENFR;
+                    tokenType = TokenType.IDENFR;
                 } else {
                     filePrinter.outPrintln(type + " " + token);
-                    tokenType = Defines.TokenType.valueOf(type);
+                    tokenType = TokenType.valueOf(type);
                 }
             }
 //            tokens.add(new Token(0, tokenType, token));
@@ -241,5 +268,16 @@ public class LexicalAnalyser {
 
     private boolean isSeparate(char c) {
         return separatorStr.containsKey(String.valueOf(c)) || c == '&' || c == '|';
+    }
+
+    public static String getReserveStr(String str) {
+        if (reserveStr.containsKey(str)) {
+            return reserveStr.get(str);
+        }
+        return "";
+    }
+
+    public static boolean isNum(char c) {
+        return c >= '0' && c <= '9';
     }
 }

@@ -16,7 +16,7 @@ public class TreePrinter {
                 type.equals("LAndExp") || type.equals("LOrExp")) {
             for (Token son : sons) {
                 dfs(son);
-                if (!Defines.isTerminal(son.getTokenType())) {
+                if (!isTerminal(son.getTokenType())) {
                     //System.out.println("<" + type + ">");
                     filePrinter.outPrintlnNew("<" + type + ">");
                 }
@@ -25,7 +25,7 @@ public class TreePrinter {
             for (Token son : sons) {
                 dfs(son);
             }
-            if (Defines.isTerminal(node.getTokenType())) {
+            if (isTerminal(node.getTokenType())) {
                 //System.out.println(node.getTokenType().toString() + " " + node.getTokenString());
                 filePrinter.outPrintlnNew(node.getTokenType().toString() + " " + node.getTokenString());
             } else {
@@ -37,5 +37,9 @@ public class TreePrinter {
                 }
             }
         }
+    }
+
+    public static boolean isTerminal(TokenType tokenType) {
+        return tokenType.ordinal() < 38;
     }
 }

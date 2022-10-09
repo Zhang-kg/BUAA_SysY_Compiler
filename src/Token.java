@@ -4,22 +4,22 @@ public class Token {
     private int lineNumber;
     private int lineStartNumber;
     private ArrayList<Token> sons;
-    private Defines.TokenType tokenType;
+    private TokenType tokenType;
     private String tokenString;
 
-    public Token(Defines.TokenType tokenType, String tokenString) {
+    public Token(TokenType tokenType, String tokenString) {
         this.tokenType = tokenType;
         this.sons = new ArrayList<>();
         this.tokenString = tokenString;
     }
-    public Token(int lineNumber, Defines.TokenType tokenType, String tokenString) {
+    public Token(int lineNumber, TokenType tokenType, String tokenString) {
         this.lineNumber = lineNumber;
         this.tokenType = tokenType;
         this.sons = new ArrayList<>();
         this.tokenString = tokenString;
     }
     
-    public Defines.TokenType getTokenType() {
+    public TokenType getTokenType() {
         return tokenType;
     }
     
@@ -27,7 +27,7 @@ public class Token {
         return tokenString;
     }
     
-    public void setTokenType(Defines.TokenType tokenType) {
+    public void setTokenType(TokenType tokenType) {
         this.tokenType = tokenType;
     }
     
