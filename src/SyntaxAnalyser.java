@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 // 语法分析
 
 public class SyntaxAnalyser {
@@ -6,93 +7,98 @@ public class SyntaxAnalyser {
     private Token root;
     private int cur_pos;
     private static boolean isParsed = false;
+    private HashMap<Token, Character> allFalse;
 
-    public SyntaxAnalyser(ArrayList<Token> tokens) {
+    public SyntaxAnalyser(ArrayList<Token> tokens, HashMap<Token, Character> allFalse) {
         this.tokens = tokens;
+        this.allFalse = allFalse;
     }
-    
-    public void parseSyntax() {
+
+    private void checkSize() throws SyntaxException {
+        if (cur_pos >= tokens.size()) {
+            throw new SyntaxException("out size");
+        }
+    }
+    public void parseSyntax() throws SyntaxException {
         isParsed = true;
         cur_pos = 0;
         this.root = new Token(0, TokenType.CompUnit, "");
-        try {
             // Decl
-            while (cur_pos < tokens.size()) {
-                if (tokens.get(cur_pos).getTokenType() == TokenType.CONSTTK) {
+        while (cur_pos < tokens.size()) {
+            if (tokens.get(cur_pos).getTokenType() == TokenType.CONSTTK) {
+                Token decl = parseDecl();
+                root.addSons(decl);
+            } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
+                if (cur_pos + 1 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.MAINTK) {
+                    break;
+                } else if (cur_pos + 2 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.IDENFR
+                        && tokens.get(cur_pos + 2).getTokenType() == TokenType.LPARENT) {
+                    break;
+                } else if (cur_pos + 1 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.IDENFR) {
                     Token decl = parseDecl();
                     root.addSons(decl);
-                } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
-                    if (cur_pos + 1 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.MAINTK) {
-                        break;
-                    } else if (cur_pos + 2 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.IDENFR
-                            && tokens.get(cur_pos + 2).getTokenType() == TokenType.LPARENT) {
-                        break;
-                    } else if (cur_pos + 1 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.IDENFR) {
-                        Token decl = parseDecl();
-                        root.addSons(decl);
-                    } else {    // Undefined
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-            // FuncDef
-            while (cur_pos < tokens.size()) {
-                if (tokens.get(cur_pos).getTokenType() == TokenType.VOIDTK) {
-                    Token funcDef = parseFuncDef();
-                    root.addSons(funcDef);
-                } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
-                    if (tokens.get(cur_pos + 1).getTokenType() == TokenType.MAINTK) {
-                        break;
-                    } else if (cur_pos + 2 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.IDENFR &&
-                            tokens.get(cur_pos + 2).getTokenType() == TokenType.LPARENT) {
-                        Token funcDef = parseFuncDef();
-                        root.addSons(funcDef);
-                    } else {    // Undefined
-                        break;
-                    }
                 } else {    // Undefined
                     break;
                 }
+            } else {
+                break;
             }
-            // MainFuncDef
-            if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK &&
-                    tokens.get(cur_pos + 1).getTokenType() == TokenType.MAINTK) {
-                Token mainFuncDef = parseMainFuncDef();
-                root.addSons(mainFuncDef);
+        }
+        // FuncDef
+        while (cur_pos < tokens.size()) {
+            if (tokens.get(cur_pos).getTokenType() == TokenType.VOIDTK) {
+                Token funcDef = parseFuncDef();
+                root.addSons(funcDef);
+            } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
+                if (tokens.get(cur_pos + 1).getTokenType() == TokenType.MAINTK) {
+                    break;
+                } else if (cur_pos + 2 < tokens.size() && tokens.get(cur_pos + 1).getTokenType() == TokenType.IDENFR &&
+                        tokens.get(cur_pos + 2).getTokenType() == TokenType.LPARENT) {
+                    Token funcDef = parseFuncDef();
+                    root.addSons(funcDef);
+                } else {    // Undefined
+                    break;
+                }
+            } else {    // Undefined
+                break;
             }
-        } catch (SyntaxException e) {
-            e.printStackTrace();
+        }
+        // MainFuncDef
+        if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK &&
+                tokens.get(cur_pos + 1).getTokenType() == TokenType.MAINTK) {
+            Token mainFuncDef = parseMainFuncDef();
+            root.addSons(mainFuncDef);
         }
     }
     
     public Token getRoot() {
-        if (!isParsed) parseSyntax();
+        if (!isParsed) {
+            try {
+                parseSyntax();
+            } catch (SyntaxException e) {
+                e.printStackTrace();
+            }
+        }
         return root;
     }
     
     private Token parseDecl() throws SyntaxException {
+        checkSize();
         Token decl = new Token(0, TokenType.Decl, "");
-        if (cur_pos < tokens.size()) {
-            if (tokens.get(cur_pos).getTokenType() == TokenType.CONSTTK) {
-                Token constDecl = parseConstDecl();
-                decl.addSons(constDecl);
-            } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
-                Token varDecl = parseVarDecl();
-                decl.addSons(varDecl);
-            }
-        } else {    // Undefined
-            throw new SyntaxException("parseDecl: position out of maxLength");
-            //return null;
+        if (tokens.get(cur_pos).getTokenType() == TokenType.CONSTTK) {
+            Token constDecl = parseConstDecl();
+            decl.addSons(constDecl);
+        } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
+            Token varDecl = parseVarDecl();
+            decl.addSons(varDecl);
         }
         return decl;
     }
     
     private Token parseConstDecl() throws SyntaxException {
+        checkSize();
         Token constDecl = new Token(0, TokenType.ConstDecl, "");
-        if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.CONSTTK) {
-            //return null;
+        if (tokens.get(cur_pos).getTokenType() != TokenType.CONSTTK) {
             throw new SyntaxException("ConstDecl: not const");
         }
         constDecl.addSons(tokens.get(cur_pos));
@@ -101,28 +107,32 @@ public class SyntaxAnalyser {
         constDecl.addSons(bType);
         Token constDef = parseConstDef();
         constDecl.addSons(constDef);
+        Token lastToken = constDef;
         while (cur_pos < tokens.size()) {
             if (tokens.get(cur_pos).getTokenType() == TokenType.COMMA) {
                 constDecl.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept ,
                 Token constDef_loop = parseConstDef();
                 constDecl.addSons(constDef_loop);
+                lastToken = constDef_loop;
             } else {
                 break;
             }
         }
-        if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
-//            return null;
-            throw new SyntaxException("ConstDecl: not ;");
+        checkSize();
+        if (tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
+            allFalse.put(lastToken, 'i');
+            constDecl.addSons(new Token(TokenType.SEMICN, ";"));
+//            throw new SyntaxException("ConstDecl: not ;");
+        } else {
+            constDecl.addSons(tokens.get(cur_pos));
+            cur_pos++;  // accept ;
         }
-        constDecl.addSons(tokens.get(cur_pos));
-        cur_pos++;  // accept ;
         return constDecl;
     }
     
     private Token parseBType() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.INTTK) {
-            //return null;
             throw new SyntaxException("BType: not int");
         }
         Token bType = tokens.get(cur_pos);
@@ -132,7 +142,6 @@ public class SyntaxAnalyser {
     
     private Token parseConstDef() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
-            //return null;
             throw new SyntaxException("ConstDef: not ident");
         }
         Token constDef = new Token(0, TokenType.ConstDef, "");
@@ -145,8 +154,9 @@ public class SyntaxAnalyser {
                 Token constExp = parseConstExp();
                 constDef.addSons(constExp);
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
-//                    System.out.println(constExp.getLineNumber());
-                    throw new SyntaxException("ConstDef: not ]");
+                    allFalse.put(constExp, 'k');
+                    constDef.addSons(new Token(TokenType.RBRACK, "]"));
+//                    throw new SyntaxException("ConstDef: not ]");
                 } else {
                     constDef.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept ]
@@ -156,7 +166,6 @@ public class SyntaxAnalyser {
             }
         }
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.ASSIGN) {
-            //return null;
             throw new SyntaxException("ConstDef: not assign");
         }
         constDef.addSons(tokens.get(cur_pos));
@@ -167,10 +176,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseConstInitVal() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("ConstInitVal: out size");
-        }
+        checkSize();
         Token constInitVal = new Token(0, TokenType.ConstInitVal, "");
         TokenType tokenType = tokens.get(cur_pos).getTokenType();
         if (tokenType == TokenType.PLUS || tokenType == TokenType.MINU ||
@@ -181,10 +187,7 @@ public class SyntaxAnalyser {
         } else if (tokenType == TokenType.LBRACE) {
             constInitVal.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept {
-            if (cur_pos >= tokens.size()) {
-                //return null;
-                throw new SyntaxException("ConstInitVal: out size");
-            }
+            checkSize();
             if (tokens.get(cur_pos).getTokenType() == TokenType.RBRACE) {
                 constInitVal.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept }
@@ -202,69 +205,66 @@ public class SyntaxAnalyser {
                     }
                 }
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACE) {
-                    //return null;
                     throw new SyntaxException("ConstInitVal: not }");
                 }
                 constInitVal.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept }
             }
         } else {    // Undefine
-            //return null;
             throw new SyntaxException("ConstInitVal: undefine");
         }
         return constInitVal;
     }
     
     private Token parseVarDecl() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("VarDecl: out size");
-        }
+        checkSize();
         Token varDecl = new Token(0, TokenType.VarDecl, "");
         Token bType = parseBType();
         varDecl.addSons(bType);
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("VarDecl: out size");
-        }
-        varDecl.addSons(parseVarDef());
+        checkSize();
+        Token lastToken;
+        varDecl.addSons(lastToken = parseVarDef());
         while (cur_pos < tokens.size()) {
             if (tokens.get(cur_pos).getTokenType() == TokenType.COMMA) {
                 varDecl.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept ,
-                varDecl.addSons(parseVarDef());
+                varDecl.addSons(lastToken = parseVarDef());
             } else {
                 break;
             }
         }
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
-            //return null;
-            throw new SyntaxException("VarDecl: not ;");
+            allFalse.put(lastToken, 'i');
+            varDecl.addSons(new Token(TokenType.SEMICN, ";"));
+//            throw new SyntaxException("VarDecl: not ;");
+        } else {
+            varDecl.addSons(tokens.get(cur_pos));
+            cur_pos++;  // accept ;
         }
-        varDecl.addSons(tokens.get(cur_pos));
-        cur_pos++;  // accept ;
         return varDecl;
     }
     
     private Token parseVarDef() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
-            //return null;
             throw new SyntaxException("VarDef: not ident");
         }
         Token varDef = new Token(0, TokenType.VarDef, "");
         varDef.addSons(tokens.get(cur_pos));
         cur_pos++;  // accept Ident
+        Token lastToken;
         while (cur_pos < tokens.size()) {
             if (tokens.get(cur_pos).getTokenType() == TokenType.LBRACK) {
                 varDef.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept [
-                varDef.addSons(parseConstExp());
+                varDef.addSons(lastToken = parseConstExp());
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
-                    //return null;
-                    throw new SyntaxException("VarDef: not ]");
+                    allFalse.put(lastToken, 'k');
+                    varDef.addSons(new Token(TokenType.RBRACK, "]"));
+//                    throw new SyntaxException("VarDef: not ]");
+                } else {
+                    varDef.addSons(tokens.get(cur_pos));
+                    cur_pos++;  // accept ]
                 }
-                varDef.addSons(tokens.get(cur_pos));
-                cur_pos++;  // accept ]
             } else {
                 break;
             }
@@ -278,10 +278,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseInitVal() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("InitVal: out size");
-        }
+        checkSize();
         Token initVal = new Token(0, TokenType.InitVal, "");
         TokenType tokenType = tokens.get(cur_pos).getTokenType();
         if (tokenType == TokenType.PLUS || tokenType == TokenType.MINU ||
@@ -291,10 +288,7 @@ public class SyntaxAnalyser {
         } else if (tokenType == TokenType.LBRACE) {
             initVal.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept {
-            if (cur_pos >= tokens.size()) {
-                //return null;
-                throw new SyntaxException("InitVal: out size");
-            }
+            checkSize();
             if (tokens.get(cur_pos).getTokenType() == TokenType.RBRACE) {
                 initVal.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept }
@@ -310,7 +304,6 @@ public class SyntaxAnalyser {
                     }
                 }
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACE) {
-                    //return null;
                     throw new SyntaxException("InitVal: not }");
                 }
                 initVal.addSons(tokens.get(cur_pos));
@@ -324,93 +317,77 @@ public class SyntaxAnalyser {
     }
     
     private Token parseFuncDef() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncDef: out size");
-        }
+        checkSize();
         Token funcDef = new Token(0, TokenType.FuncDef, "");
         funcDef.addSons(parseFuncType());
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
-            //return null;
             throw new SyntaxException("FuncDef: not ident");
         }
         funcDef.addSons(tokens.get(cur_pos));
         cur_pos++;  // accept Ident
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
-            //return null;
             throw new SyntaxException("FuncDef: not (");
         }
-        funcDef.addSons(tokens.get(cur_pos));
+        Token lastToken;
+        funcDef.addSons(lastToken = tokens.get(cur_pos));
         cur_pos++;  // accept (
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncDef: out size");
-        }
+        checkSize();
         if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
-            funcDef.addSons(parseFuncFParams());
+            funcDef.addSons(lastToken = parseFuncFParams());
         }
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-            //return null;
-            throw new SyntaxException("FuncDef: not )");
+            allFalse.put(lastToken, 'j');
+            funcDef.addSons(new Token(TokenType.RPARENT, ")"));
+//            throw new SyntaxException("FuncDef: not )");
+        } else {
+            funcDef.addSons(tokens.get(cur_pos));
+            cur_pos++;  // accept )
         }
-        funcDef.addSons(tokens.get(cur_pos));
-        cur_pos++;  // accept )
         funcDef.addSons(parseBlock());
         return funcDef;
     }
     
     private Token parseMainFuncDef() throws SyntaxException {
-        if (cur_pos + 3 >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("MainFuncDef: out size");
-        }
+        checkSize();
         Token mainFuncDef = new Token(0, TokenType.MainFuncDef, "");
         if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
             mainFuncDef.addSons(tokens.get(cur_pos));
             cur_pos++;
         } else {
-            //return null;
             throw new SyntaxException("MainFuncDef: missing int");
         }
+        checkSize();
         if (tokens.get(cur_pos).getTokenType() == TokenType.MAINTK) {
             mainFuncDef.addSons(tokens.get(cur_pos));
             cur_pos++;
         } else {
-            //return null;
             throw new SyntaxException("MainFuncDef: missing main");
         }
+        checkSize();
         if (tokens.get(cur_pos).getTokenType() == TokenType.LPARENT) {
             mainFuncDef.addSons(tokens.get(cur_pos));
             cur_pos++;
         } else {
-            //return null;
             throw new SyntaxException("MainFuncDef: missing (");
         }
         if (tokens.get(cur_pos).getTokenType() == TokenType.RPARENT) {
             mainFuncDef.addSons(tokens.get(cur_pos));
             cur_pos++;
         } else {
-            //return null;
-            throw new SyntaxException("MainFuncDef: missing )");
+            allFalse.put(tokens.get(cur_pos - 1), 'j');
+            mainFuncDef.addSons(new Token(TokenType.RPARENT, ")"));
+//            throw new SyntaxException("MainFuncDef: missing )");
         }
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("MainFuncDef: out size");
-        }
+        checkSize();
         mainFuncDef.addSons(parseBlock());
         return mainFuncDef;
     }
     
     private Token parseFuncType() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncType: out size");
-        }
+        checkSize();
         Token funcType = new Token(0, TokenType.FuncType, "");
-        if (cur_pos >= tokens.size() ||
-                (tokens.get(cur_pos).getTokenType() != TokenType.VOIDTK &&
-                        tokens.get(cur_pos).getTokenType() != TokenType.INTTK)) {
-            //return null;
+        if (tokens.get(cur_pos).getTokenType() != TokenType.VOIDTK &&
+                        tokens.get(cur_pos).getTokenType() != TokenType.INTTK) {
             throw new SyntaxException("FuncType: not void or int");
         }
         funcType.addSons(tokens.get(cur_pos));
@@ -419,10 +396,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseFuncFParams() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncFParams: out size");
-        }
+        checkSize();
         Token funcFParams = new Token(0, TokenType.FuncFParams, "");
         if (tokens.get(cur_pos).getTokenType() == TokenType.INTTK) {
             funcFParams.addSons(parseFuncFParam());
@@ -436,50 +410,47 @@ public class SyntaxAnalyser {
                 }
             }
         } else {
-            //return null;
             throw new SyntaxException("FuncFParams: undefine");
         }
         return funcFParams;
     }
     
     private Token parseFuncFParam() throws SyntaxException {
-        if (cur_pos + 1 >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncFParam: out size");
-        }
+        checkSize();
         Token funcFParam = new Token(0, TokenType.FuncFParam, "");
         funcFParam.addSons(parseBType());
+        checkSize();
         if (tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
-            //return null;
             throw new SyntaxException("FuncFParam: not int");
         }
         funcFParam.addSons(tokens.get(cur_pos));
         cur_pos++;  // accept Ident
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncFParam: out size");
-        }
+        checkSize();
         if (tokens.get(cur_pos).getTokenType() == TokenType.LBRACK) {
-            //if (cur_pos + 1 >= tokens.size()) return null;
             funcFParam.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept [
             if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
-                //return null;
-                throw new SyntaxException("FuncFParam: not ]");
+                allFalse.put(tokens.get(cur_pos - 1), 'k');
+                funcFParam.addSons(new Token(TokenType.RBRACK, "]"));
+//                throw new SyntaxException("FuncFParam: not ]");
+            } else {
+                funcFParam.addSons(tokens.get(cur_pos));
+                cur_pos++;  // accept ]
             }
-            funcFParam.addSons(tokens.get(cur_pos));
-            cur_pos++;  // accept ]
             while (cur_pos < tokens.size()) {
                 if (tokens.get(cur_pos).getTokenType() == TokenType.LBRACK) {
                     funcFParam.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept [
-                    funcFParam.addSons(parseConstExp());
+                    Token lastToken;
+                    funcFParam.addSons(lastToken = parseConstExp());
                     if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
-                        //return null;
-                        throw new SyntaxException("FuncFParam: not ]");
+                        allFalse.put(lastToken, 'k');
+                        funcFParam.addSons(new Token(TokenType.RBRACK, "]"));
+//                        throw new SyntaxException("FuncFParam: not ]");
+                    } else {
+                        funcFParam.addSons(tokens.get(cur_pos));
+                        cur_pos++;  // accept ]
                     }
-                    funcFParam.addSons(tokens.get(cur_pos));
-                    cur_pos++;  // accept ]
                 } else {
                     break;
                 }
@@ -490,16 +461,12 @@ public class SyntaxAnalyser {
     
     private Token parseBlock() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LBRACE) {
-            //return null;
             throw new SyntaxException("Block: not {");
         }
         Token block = new Token(0, TokenType.Block, "");
         block.addSons(tokens.get(cur_pos));
         cur_pos++;  // accept {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("Block: out size");
-        }
+        checkSize();
         while (cur_pos < tokens.size()) {
             TokenType tokenType = tokens.get(cur_pos).getTokenType();
             if (tokenType == TokenType.IDENFR || tokenType == TokenType.PLUS ||
@@ -516,7 +483,6 @@ public class SyntaxAnalyser {
             }
         }
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACE) {
-            //return null;
             throw new SyntaxException("Block: not }");
         }
         block.addSons(tokens.get(cur_pos));
@@ -525,10 +491,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseBlockItem() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("BlockItem: out size");
-        }
+        checkSize();
         TokenType tokenType = tokens.get(cur_pos).getTokenType();
         Token blockItem = new Token(0, TokenType.BlockItem, "");
         if (tokenType == TokenType.INTTK || tokenType == TokenType.CONSTTK) {
@@ -542,16 +505,13 @@ public class SyntaxAnalyser {
                 tokenType == TokenType.PRINTFTK || tokenType == TokenType.CONTINUETK) {
             blockItem.addSons(parseStmt());
         } else {
-            //return null;
             throw new SyntaxException("BlockItem: undefine");
         }
         return blockItem;
     }
     
     private Token parseStmt() throws SyntaxException { // TODO:把分号统一提出来
-        if (cur_pos >= tokens.size()) {
-            throw new SyntaxException("Stmt: out size");
-        }
+        checkSize();
         Token stmt = new Token(0, TokenType.Stmt, "");
         TokenType tokenType = tokens.get(cur_pos).getTokenType();
         if (tokenType == TokenType.LBRACE || tokenType == TokenType.WHILETK || tokenType == TokenType.IFTK) {
@@ -561,7 +521,6 @@ public class SyntaxAnalyser {
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept if
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
-                    //return null;
                     throw new SyntaxException("Stmt: not (");
                 }
                 stmt.addSons(tokens.get(cur_pos));
@@ -569,11 +528,13 @@ public class SyntaxAnalyser {
                 Token cond = parseCond();
                 stmt.addSons(cond);
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                    //return null;
-                    throw new SyntaxException("Stmt: not )");
+                    allFalse.put(cond, 'j');
+                    stmt.addSons(new Token(TokenType.RPARENT, ")"));
+//                    throw new SyntaxException("Stmt: not )");
+                } else {
+                    stmt.addSons(tokens.get(cur_pos));
+                    cur_pos++;  // accept )
                 }
-                stmt.addSons(tokens.get(cur_pos));
-                cur_pos++;  // accept )
                 stmt.addSons(parseStmt());
                 if (cur_pos < tokens.size() && tokens.get(cur_pos).getTokenType() == TokenType.ELSETK) {
                     stmt.addSons(tokens.get(cur_pos));
@@ -584,18 +545,20 @@ public class SyntaxAnalyser {
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept while
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
-                    //return null;
                     throw new SyntaxException("Stmt: not (");
                 }
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept (
-                stmt.addSons(parseCond());
+                Token cond = parseCond();
+                stmt.addSons(cond);
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                    //return null;
-                    throw new SyntaxException("Stmt: not )");
+                    allFalse.put(cond, 'j');
+                    stmt.addSons(new Token(TokenType.RPARENT, ")"));
+//                    throw new SyntaxException("Stmt: not )");
+                } else {
+                    stmt.addSons(tokens.get(cur_pos));
+                    cur_pos++;  // accept )
                 }
-                stmt.addSons(tokens.get(cur_pos));
-                cur_pos++;  // accept )
                 stmt.addSons(parseStmt());
             }
         } else if (tokenType == TokenType.IDENFR || tokenType == TokenType.BREAKTK ||
@@ -618,31 +581,28 @@ public class SyntaxAnalyser {
                 if (flag == 0) {
                     stmt.addSons(parseLVal());
                     if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.ASSIGN) {
-                        //return null;
                         throw new SyntaxException("Stmt: not =");
                     }
                     stmt.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept =
-                    if (cur_pos >= tokens.size()) {
-                        //return null;
-                        throw new SyntaxException("Stmt: out size");
-                    }
+                    checkSize();
                     TokenType tokenTypeExp = tokens.get(cur_pos).getTokenType();
                     if (tokenTypeExp == TokenType.GETINTTK) {
                         stmt.addSons(tokens.get(cur_pos));
                         cur_pos++;  // accept getint
                         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
-                            //return null;
                             throw new SyntaxException("Stmt: not (");
                         }
                         stmt.addSons(tokens.get(cur_pos));
                         cur_pos++;  // accept (
                         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                            //return null;
-                            throw new SyntaxException("Stmt: not )");
+                            allFalse.put(tokens.get(cur_pos - 1), 'j');
+                            stmt.addSons(new Token(TokenType.RPARENT, ")"));
+//                            throw new SyntaxException("Stmt: not )");
+                        } else {
+                            stmt.addSons(tokens.get(cur_pos));
+                            cur_pos++;  // accept )
                         }
-                        stmt.addSons(tokens.get(cur_pos));
-                        cur_pos++;  // accept )
                     } else if (tokenTypeExp == TokenType.PLUS || tokenTypeExp == TokenType.MINU ||
                             tokenTypeExp == TokenType.NOT || tokenTypeExp == TokenType.IDENFR ||
                             tokenTypeExp == TokenType.LPARENT || tokenTypeExp == TokenType.INTCON) {
@@ -652,7 +612,6 @@ public class SyntaxAnalyser {
                 } else if (flag == 2) {
                     stmt.addSons(parseExp());
                 } else {
-                    //return null;
                     throw new SyntaxException("Stmt: undefine");
                 }
             } else if (tokenType == TokenType.BREAKTK) {
@@ -664,10 +623,7 @@ public class SyntaxAnalyser {
             } else if (tokenType == TokenType.RETURNTK) {
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept return
-                if (cur_pos >= tokens.size()) {
-                    //return null;
-                    throw new SyntaxException("Stmt: out size");
-                }
+                checkSize();
                 TokenType tokenTypeExp = tokens.get(cur_pos).getTokenType();
                 if (tokenTypeExp == TokenType.PLUS || tokenTypeExp == TokenType.MINU ||
                         tokenTypeExp == TokenType.NOT || tokenTypeExp == TokenType.IDENFR ||
@@ -678,65 +634,61 @@ public class SyntaxAnalyser {
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept printf
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
-                    //return null;
                     throw new SyntaxException("Stmt: not (");
                 }
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept (
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.STRCON) {
-                    //return null;
                     throw new SyntaxException("Stmt: not string");
                 }
-                stmt.addSons(tokens.get(cur_pos));
+                Token lastToken;
+                stmt.addSons(lastToken = tokens.get(cur_pos));
                 cur_pos++;  // accept FormatString
                 while (cur_pos < tokens.size()) {
                     if (tokens.get(cur_pos).getTokenType() == TokenType.COMMA) {
                         stmt.addSons(tokens.get(cur_pos));
                         cur_pos++;  // accept ,
-                        stmt.addSons(parseExp());
+                        stmt.addSons(lastToken = parseExp());
                     } else {
                         break;
                     }
                 }
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                    //return null;
-                    throw new SyntaxException("Stmt: not )");
+                    allFalse.put(lastToken, 'j');
+                    stmt.addSons(new Token(TokenType.RPARENT, ")"));
+//                    throw new SyntaxException("Stmt: not )");
+                } else {
+                    stmt.addSons(tokens.get(cur_pos));
+                    cur_pos++;  // accept )
                 }
-                stmt.addSons(tokens.get(cur_pos));
-                cur_pos++;  // accept )
             } else if (tokenType == TokenType.PLUS || tokenType == TokenType.MINU ||
                     tokenType == TokenType.NOT ||
                     tokenType == TokenType.LPARENT || tokenType == TokenType.INTCON) {
                 stmt.addSons(parseExp());
             }
             if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
-                //return null;
-                throw new SyntaxException("Stmt: not ;");
+                allFalse.put(stmt.getLastSon(), 'i');
+                stmt.addSons(new Token(TokenType.SEMICN, ";"));
+//                throw new SyntaxException("Stmt: not ;");
+            } else {
+                stmt.addSons(tokens.get(cur_pos));
+                cur_pos++;  // accept ;
             }
-            stmt.addSons(tokens.get(cur_pos));
-            cur_pos++;  // accept ;
-        } else {
-            //return null; // Undefine
+        } else { // Undefine
             throw new SyntaxException("Stmt: 1undefine");
         }
         return stmt;
     }
     
     private Token parseExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("Exp: out size");
-        }
+        checkSize();
         Token exp = new Token(0, TokenType.Exp, "");
         exp.addSons(parseAddExp());
         return exp;
     }
     
     private Token parseCond() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("Cond: out size");
-        }
+        checkSize();
         Token cond = new Token(0, TokenType.Cond, "");
         cond.addSons(parseLOrExp());
         return cond;
@@ -744,7 +696,6 @@ public class SyntaxAnalyser {
     
     private Token parseLVal() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.IDENFR) {
-            //return null;
             throw new SyntaxException("LVal: not ident");
         }
         Token lVal = new Token(0, TokenType.LVal, "");
@@ -755,13 +706,16 @@ public class SyntaxAnalyser {
             if (tokenType == TokenType.LBRACK) {
                 lVal.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept [
-                lVal.addSons(parseExp());
+                Token lastToken;
+                lVal.addSons(lastToken = parseExp());
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
-                    //return null;
-                    throw new SyntaxException("LVal: not ]");
+                    allFalse.put(lastToken, 'k');
+                    lVal.addSons(new Token(TokenType.RBRACK, "]"));
+//                    throw new SyntaxException("LVal: not ]");
+                } else {
+                    lVal.addSons(tokens.get(cur_pos));
+                    cur_pos++;  // accept ]
                 }
-                lVal.addSons(tokens.get(cur_pos));
-                cur_pos++;  // accept ]
             } else {
                 break;
             }
@@ -770,21 +724,21 @@ public class SyntaxAnalyser {
     }
     
     private Token parsePrimaryExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("PrimaryExp: out size");
-        }
+        checkSize();
         Token primaryExp = new Token(0, TokenType.PrimaryExp, "");
         if (tokens.get(cur_pos).getTokenType() == TokenType.LPARENT) {
             primaryExp.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept (
-            primaryExp.addSons(parseExp());
+            Token lastToken;
+            primaryExp.addSons(lastToken = parseExp());
             if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                //return null;
-                throw new SyntaxException("PrimaryExp: not )");
+                allFalse.put(lastToken, 'j');
+                primaryExp.addSons(new Token(TokenType.RPARENT, ")"));
+//                throw new SyntaxException("PrimaryExp: not )");
+            } else {
+                primaryExp.addSons(tokens.get(cur_pos));
+                cur_pos++;  // accept )
             }
-            primaryExp.addSons(tokens.get(cur_pos));
-            cur_pos++;  // accept )
         } else if (tokens.get(cur_pos).getTokenType() == TokenType.IDENFR) {
             primaryExp.addSons(parseLVal());
         } else if (tokens.get(cur_pos).getTokenType() == TokenType.INTCON) {
@@ -795,7 +749,6 @@ public class SyntaxAnalyser {
     
     private Token parseNumber() throws SyntaxException {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.INTCON) {
-            //return null;
             throw new SyntaxException("Number: not int");
         }
         Token number = new Token(0, TokenType.Number, "");
@@ -806,20 +759,17 @@ public class SyntaxAnalyser {
     
     private Token parseUnaryExp() throws SyntaxException {
         // PrimaryExp 和 Ident 分支的FIRST集合产生冲突，向后看第二个token，如果是(则为分支2，否则进入分支1(PrimaryExp)
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("UnaryExp: out size");
-        }
+        checkSize();
         Token unaryExp = new Token(0, TokenType.UnaryExp, "");
         if (tokens.get(cur_pos).getTokenType() == TokenType.IDENFR) {
             if (cur_pos + 1 >= tokens.size()) {
-                //return null;
                 throw new SyntaxException("UnaryExp: out size");
             }
             if (tokens.get(cur_pos + 1).getTokenType() == TokenType.LPARENT) {  // branch 2 Ident '(' [FuncRParams] ')'
                 unaryExp.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept Ident
-                unaryExp.addSons(tokens.get(cur_pos));
+                Token lastToken;
+                unaryExp.addSons(lastToken = tokens.get(cur_pos));
                 cur_pos++;  // accept (
                 if (cur_pos < tokens.size() && tokens.get(cur_pos).getTokenType() == TokenType.PLUS ||
                         tokens.get(cur_pos).getTokenType() == TokenType.MINU ||
@@ -827,14 +777,16 @@ public class SyntaxAnalyser {
                         tokens.get(cur_pos).getTokenType() == TokenType.IDENFR ||
                         tokens.get(cur_pos).getTokenType() == TokenType.LPARENT ||
                         tokens.get(cur_pos).getTokenType() == TokenType.INTCON) {
-                    unaryExp.addSons(parseFuncRParams());
+                    unaryExp.addSons(lastToken = parseFuncRParams());
                 }
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                    //return null;
-                    throw new SyntaxException("UnaryExp: not )");
+                    allFalse.put(lastToken, 'j');
+                    unaryExp.addSons(new Token(TokenType.RPARENT, ")"));
+//                    throw new SyntaxException("UnaryExp: not )");
+                } else {
+                    unaryExp.addSons(tokens.get(cur_pos));
+                    cur_pos++;  // accept )
                 }
-                unaryExp.addSons(tokens.get(cur_pos));
-                cur_pos++;  // accept )
             } else {
                 unaryExp.addSons(parsePrimaryExp());
             }
@@ -847,17 +799,13 @@ public class SyntaxAnalyser {
             unaryExp.addSons(parseUnaryOp());
             unaryExp.addSons(parseUnaryExp());
         } else {
-            //return null;
             throw new SyntaxException("UnaryExp: undefine");
         }
         return unaryExp;
     }
     
     private Token parseUnaryOp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("UnaryOp: out size");
-        }
+        checkSize();
         Token unaryOp = new Token(0, TokenType.UnaryOp, "");
         if (tokens.get(cur_pos).getTokenType() == TokenType.PLUS ||
             tokens.get(cur_pos).getTokenType() == TokenType.MINU ||
@@ -865,17 +813,13 @@ public class SyntaxAnalyser {
             unaryOp.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept + or - or !
         } else {
-            //return null;
             throw new SyntaxException("UnaryOp: undefine");
         }
         return unaryOp;
     }
     
     private Token parseFuncRParams() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("FuncRParams: out size");
-        }
+        checkSize();
         Token funcRParams = new Token(0, TokenType.FuncRParams, "");
         funcRParams.addSons(parseExp());
         while (cur_pos < tokens.size()) {
@@ -891,10 +835,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseMulExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("MulExp: out size");
-        }
+        checkSize();
         Token mulExp = new Token(0, TokenType.MulExp, "");
         mulExp.addSons(parseUnaryExp());
         while (cur_pos < tokens.size()) {
@@ -911,10 +852,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseAddExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("AddExp: out size");
-        }
+        checkSize();
         Token addExp = new Token(0, TokenType.AddExp, "");
         addExp.addSons(parseMulExp());
         while (cur_pos < tokens.size()) {
@@ -931,10 +869,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseRelExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("RelExp: out size");
-        }
+        checkSize();
         Token relExp = new Token(0, TokenType.RelExp, "");
         relExp.addSons(parseAddExp());
         while (cur_pos < tokens.size()) {
@@ -952,10 +887,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseEqExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("EqExp: out size");
-        }
+        checkSize();
         Token eqExp = new Token(0, TokenType.EqExp, "");
         eqExp.addSons(parseRelExp());
         while (cur_pos < tokens.size()) {
@@ -972,10 +904,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseLAndExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("LAndExp: out size");
-        }
+        checkSize();
         Token lAndExp = new Token(0, TokenType.LAndExp, "");
         lAndExp.addSons(parseEqExp());
         while (cur_pos < tokens.size()) {
@@ -992,10 +921,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseLOrExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("LOrExp: out size");
-        }
+        checkSize();
         Token lOrExp = new Token(0, TokenType.LOrExp, "");
         lOrExp.addSons(parseLAndExp());
         while (cur_pos < tokens.size()) {
@@ -1012,10 +938,7 @@ public class SyntaxAnalyser {
     }
     
     private Token parseConstExp() throws SyntaxException {
-        if (cur_pos >= tokens.size()) {
-            //return null;
-            throw new SyntaxException("ConstExp: out size");
-        }
+        checkSize();
         Token constExp = new Token(0, TokenType.ConstExp, "");
         constExp.addSons(parseAddExp());
         return constExp;

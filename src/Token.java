@@ -34,6 +34,10 @@ public class Token {
     public void addSons(Token son) {
         this.sons.add(son);
     }
+
+    public Token getLastSon() {
+        return this.sons.get(this.sons.size() - 1);
+    }
     
     public ArrayList<Token> getSons() {
         return sons;

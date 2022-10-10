@@ -31,8 +31,8 @@ public class Compiler {
         }
 //        System.out.println("");
 //        System.out.println("------end------");
-
-        SyntaxAnalyser syntaxAnalyser = new SyntaxAnalyser(tokens);
+        HashMap<Token, Character> allFalse = new HashMap<>();
+        SyntaxAnalyser syntaxAnalyser = new SyntaxAnalyser(tokens, allFalse);
         Token root = syntaxAnalyser.getRoot();
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
         TreePrinter treePrinter = new TreePrinter(root);
