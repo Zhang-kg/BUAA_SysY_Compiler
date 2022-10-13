@@ -1,3 +1,9 @@
+package Syntax;
+
+import Syntax.SyntaxException;
+import TokenDefines.Token;
+import TokenDefines.TokenType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 // 语法分析
@@ -123,7 +129,7 @@ public class SyntaxAnalyser {
         if (tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
             allFalse.put(lastToken, 'i');
             constDecl.addSons(new Token(TokenType.SEMICN, ";"));
-//            throw new SyntaxException("ConstDecl: not ;");
+//            throw new Syntax.SyntaxException("ConstDecl: not ;");
         } else {
             constDecl.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept ;
@@ -156,7 +162,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
                     allFalse.put(constExp, 'k');
                     constDef.addSons(new Token(TokenType.RBRACK, "]"));
-//                    throw new SyntaxException("ConstDef: not ]");
+//                    throw new Syntax.SyntaxException("ConstDef: not ]");
                 } else {
                     constDef.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept ]
@@ -236,7 +242,7 @@ public class SyntaxAnalyser {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
             allFalse.put(lastToken, 'i');
             varDecl.addSons(new Token(TokenType.SEMICN, ";"));
-//            throw new SyntaxException("VarDecl: not ;");
+//            throw new Syntax.SyntaxException("VarDecl: not ;");
         } else {
             varDecl.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept ;
@@ -260,7 +266,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
                     allFalse.put(lastToken, 'k');
                     varDef.addSons(new Token(TokenType.RBRACK, "]"));
-//                    throw new SyntaxException("VarDef: not ]");
+//                    throw new Syntax.SyntaxException("VarDef: not ]");
                 } else {
                     varDef.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept ]
@@ -338,7 +344,7 @@ public class SyntaxAnalyser {
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
             allFalse.put(lastToken, 'j');
             funcDef.addSons(new Token(TokenType.RPARENT, ")"));
-//            throw new SyntaxException("FuncDef: not )");
+//            throw new Syntax.SyntaxException("FuncDef: not )");
         } else {
             funcDef.addSons(tokens.get(cur_pos));
             cur_pos++;  // accept )
@@ -376,7 +382,7 @@ public class SyntaxAnalyser {
         } else {
             allFalse.put(tokens.get(cur_pos - 1), 'j');
             mainFuncDef.addSons(new Token(TokenType.RPARENT, ")"));
-//            throw new SyntaxException("MainFuncDef: missing )");
+//            throw new Syntax.SyntaxException("MainFuncDef: missing )");
         }
         checkSize();
         mainFuncDef.addSons(parseBlock());
@@ -432,7 +438,7 @@ public class SyntaxAnalyser {
             if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
                 allFalse.put(tokens.get(cur_pos - 1), 'k');
                 funcFParam.addSons(new Token(TokenType.RBRACK, "]"));
-//                throw new SyntaxException("FuncFParam: not ]");
+//                throw new Syntax.SyntaxException("FuncFParam: not ]");
             } else {
                 funcFParam.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept ]
@@ -446,7 +452,7 @@ public class SyntaxAnalyser {
                     if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
                         allFalse.put(lastToken, 'k');
                         funcFParam.addSons(new Token(TokenType.RBRACK, "]"));
-//                        throw new SyntaxException("FuncFParam: not ]");
+//                        throw new Syntax.SyntaxException("FuncFParam: not ]");
                     } else {
                         funcFParam.addSons(tokens.get(cur_pos));
                         cur_pos++;  // accept ]
@@ -530,7 +536,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
                     allFalse.put(cond, 'j');
                     stmt.addSons(new Token(TokenType.RPARENT, ")"));
-//                    throw new SyntaxException("Stmt: not )");
+//                    throw new Syntax.SyntaxException("Stmt: not )");
                 } else {
                     stmt.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept )
@@ -554,7 +560,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
                     allFalse.put(cond, 'j');
                     stmt.addSons(new Token(TokenType.RPARENT, ")"));
-//                    throw new SyntaxException("Stmt: not )");
+//                    throw new Syntax.SyntaxException("Stmt: not )");
                 } else {
                     stmt.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept )
@@ -598,7 +604,7 @@ public class SyntaxAnalyser {
                         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
                             allFalse.put(tokens.get(cur_pos - 1), 'j');
                             stmt.addSons(new Token(TokenType.RPARENT, ")"));
-//                            throw new SyntaxException("Stmt: not )");
+//                            throw new Syntax.SyntaxException("Stmt: not )");
                         } else {
                             stmt.addSons(tokens.get(cur_pos));
                             cur_pos++;  // accept )
@@ -656,7 +662,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
                     allFalse.put(lastToken, 'j');
                     stmt.addSons(new Token(TokenType.RPARENT, ")"));
-//                    throw new SyntaxException("Stmt: not )");
+//                    throw new Syntax.SyntaxException("Stmt: not )");
                 } else {
                     stmt.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept )
@@ -669,7 +675,7 @@ public class SyntaxAnalyser {
             if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.SEMICN) {
                 allFalse.put(stmt.getLastSon(), 'i');
                 stmt.addSons(new Token(TokenType.SEMICN, ";"));
-//                throw new SyntaxException("Stmt: not ;");
+//                throw new Syntax.SyntaxException("Stmt: not ;");
             } else {
                 stmt.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept ;
@@ -711,7 +717,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RBRACK) {
                     allFalse.put(lastToken, 'k');
                     lVal.addSons(new Token(TokenType.RBRACK, "]"));
-//                    throw new SyntaxException("LVal: not ]");
+//                    throw new Syntax.SyntaxException("LVal: not ]");
                 } else {
                     lVal.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept ]
@@ -734,7 +740,7 @@ public class SyntaxAnalyser {
             if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
                 allFalse.put(lastToken, 'j');
                 primaryExp.addSons(new Token(TokenType.RPARENT, ")"));
-//                throw new SyntaxException("PrimaryExp: not )");
+//                throw new Syntax.SyntaxException("PrimaryExp: not )");
             } else {
                 primaryExp.addSons(tokens.get(cur_pos));
                 cur_pos++;  // accept )
@@ -782,7 +788,7 @@ public class SyntaxAnalyser {
                 if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
                     allFalse.put(lastToken, 'j');
                     unaryExp.addSons(new Token(TokenType.RPARENT, ")"));
-//                    throw new SyntaxException("UnaryExp: not )");
+//                    throw new Syntax.SyntaxException("UnaryExp: not )");
                 } else {
                     unaryExp.addSons(tokens.get(cur_pos));
                     cur_pos++;  // accept )

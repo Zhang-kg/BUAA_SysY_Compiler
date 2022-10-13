@@ -1,3 +1,9 @@
+package FileIO;
+
+import TokenDefines.Token;
+import TokenDefines.TokenType;
+import FileIO.FilePrinter;
+
 import java.util.ArrayList;
 
 public class TreePrinter {
@@ -5,7 +11,24 @@ public class TreePrinter {
     
     public TreePrinter(Token root) {
         this.root = root;
+        determineLineNumber(root);
         dfs(root);
+    }
+
+    private int determineLineNumber(Token root) {
+        if (isTerminal(root.getTokenType())) {
+            return root.getLineNumber();
+        }
+        ArrayList<Token> sons = root.getSons();
+        int lineNumber = 0;
+        for (int i = sons.size() - 1; i >= 0; i--) {
+            int temp = determineLineNumber(sons.get(i));
+            if (temp != 0 && lineNumber == 0) {
+                lineNumber = temp;
+            }
+        }
+        root.setLineNumber(lineNumber);
+        return lineNumber;
     }
     
     public void dfs(Token node) {

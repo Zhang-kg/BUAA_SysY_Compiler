@@ -1,3 +1,9 @@
+package Lexical;
+
+import TokenDefines.Token;
+import TokenDefines.TokenType;
+import FileIO.FilePrinter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -250,7 +256,7 @@ public class LexicalAnalyser {
                     tokenType = TokenType.valueOf(type);
                 }
             }
-//            tokens.add(new Token(0, tokenType, token));
+//            tokens.add(new TokenDefines.Token(0, tokenType, token));
             Token token1 = new Token(tokenType, token);
             token1.setLineStartNumber(tokenLineStartNumber);
             tokens.add(token1);

@@ -1,3 +1,5 @@
+package TokenDefines;
+
 import java.util.ArrayList;
 
 public class Token {

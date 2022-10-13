@@ -1,3 +1,10 @@
+import FileIO.BasicScanner;
+import FileIO.FilePrinter;
+import FileIO.TreePrinter;
+import Lexical.LexicalAnalyser;
+import Syntax.SyntaxAnalyser;
+import TokenDefines.Token;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -38,7 +45,7 @@ public class Compiler {
         TreePrinter treePrinter = new TreePrinter(root);
 
 
-        //for (Token token : tokens) {
+        //for (TokenDefines.Token token : tokens) {
         //    filePrinter.outPrintlnNew(token.getTokenType() + " " + token.getTokenString());
         //    //System.out.println(token.getTokenType() + " " + token.getTokenString());
         //}
