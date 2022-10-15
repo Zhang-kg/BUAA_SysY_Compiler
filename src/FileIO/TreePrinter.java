@@ -2,7 +2,6 @@ package FileIO;
 
 import TokenDefines.Token;
 import TokenDefines.TokenType;
-import FileIO.FilePrinter;
 
 import java.util.ArrayList;
 
@@ -41,7 +40,7 @@ public class TreePrinter {
                 dfs(son);
                 if (!isTerminal(son.getTokenType())) {
                     //System.out.println("<" + type + ">");
-                    filePrinter.outPrintlnNew("<" + type + ">");
+                    filePrinter.outPrintlnSyntax("<" + type + ">");
                 }
             }
         } else {
@@ -50,13 +49,13 @@ public class TreePrinter {
             }
             if (isTerminal(node.getTokenType())) {
                 //System.out.println(node.getTokenType().toString() + " " + node.getTokenString());
-                filePrinter.outPrintlnNew(node.getTokenType().toString() + " " + node.getTokenString());
+                filePrinter.outPrintlnSyntax(node.getTokenType().toString() + " " + node.getTokenString());
             } else {
                 if (!(node.getTokenType().toString().equals("BlockItem") ||
                         node.getTokenType().toString().equals("Decl") ||
                         node.getTokenType().toString().equals("BType"))){
                     //System.out.println("<" + node.getTokenType().toString() + ">");
-                    filePrinter.outPrintlnNew("<" + node.getTokenType().toString() + ">");
+                    filePrinter.outPrintlnSyntax("<" + node.getTokenType().toString() + ">");
                 }
             }
         }

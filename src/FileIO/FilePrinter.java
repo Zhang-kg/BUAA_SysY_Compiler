@@ -26,7 +26,7 @@ public class FilePrinter {
 
     }
     
-    public void outPrintlnNew(String line) {
+    public void outPrintlnSyntax(String line) {
         out.println(line);
     }
 

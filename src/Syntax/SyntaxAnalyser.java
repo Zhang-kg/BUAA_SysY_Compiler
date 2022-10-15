@@ -138,10 +138,11 @@ public class SyntaxAnalyser {
     }
     
     private Token parseBType() throws SyntaxException {
+        Token bType = new Token(0, TokenType.BType, "");
         if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.INTTK) {
             throw new SyntaxException("BType: not int");
         }
-        Token bType = tokens.get(cur_pos);
+        bType.addSons(tokens.get(cur_pos));
         cur_pos++;
         return bType;
     }
