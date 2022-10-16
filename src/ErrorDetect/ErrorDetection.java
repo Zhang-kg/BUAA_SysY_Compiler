@@ -2,27 +2,29 @@ package ErrorDetect;
 
 import TokenDefines.Token;
 import TokenDefines.TokenType;
-import com.sun.org.apache.bcel.internal.generic.LOR;
-import com.sun.xml.internal.bind.v2.model.core.ID;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.jar.Attributes;
 
 
 public class ErrorDetection {
-    private Token root;
+    private final Token root;
     private HashMap<Token, Character> allFalse;
     private SymbolTable rootTable;
 
     public ErrorDetection(Token root, HashMap<Token, Character> allFalse) {
         this.root = root;
         this.allFalse = allFalse;
+        detectCompUnit(root);
     }
 
     public Token errorDetection(Token root) {
         detectCompUnit(root);
         return root;
+    }
+
+    public HashMap<Token, Character> getAllFalse() {
+        return allFalse;
     }
 
     private Token detectCompUnit(Token compUnit) {
@@ -82,32 +84,43 @@ public class ErrorDetection {
         return bTypeAttributes;
     }
 
-    private SymbolTableItem detectConstDef(Token constDef, SymbolTable currentTable, SymbolTableItem attributes) {
-        String type = attributes.getType();
-        String name;
+    private SymbolTableItem detectConstDef(Token constDef, SymbolTable currentTable, SymbolTableItem typeAttributes) {
+//        String type = typeAttributes.getType();
+        String name = "";
         SymbolTableItem symbolTableItem = new SymbolTableItem();
-        ArrayList<Integer> dimensions = new ArrayList<>();
+//        ArrayList<Integer> dimensions = new ArrayList<>();
+        int dimensions = 0;
         ArrayList<Token> sons = constDef.getSons();
+        SymbolTableItem attributes = new SymbolTableItem();
+        attributes.setSymbolType(SymbolType.VARIABLE);
+        attributes.setConst(true);
         for (Token son : sons) {
             TokenType tokenType = son.getTokenType();
             if (tokenType == TokenType.IDENFR) {
-                name = constDef.getTokenString();
+                name = son.getTokenString();
                 if (currentTable.findIdentInCurrentTable(name)) {
                     allFalse.put(son, 'b');
                 }
             } else if (tokenType == TokenType.ConstExp) {
                 SymbolTableItem dimensionAttributes = detectConstExp(son, currentTable);
-                // TODO: 添加维度信息，不清楚要传什么内容
+//                dimensions.add(dimensionAttributes.getValue()); // add Attributes
+                attributes.setSymbolType(SymbolType.ARRAY);
+                dimensions++;
             } else if (tokenType == TokenType.ConstInitVal) {
                 SymbolTableItem initValAttributes = detectConstInitVal(son, currentTable);
-                // TODO：进行初始化，不清楚要传递什么东西（感觉维度信息可以传递进去），但是估计不会出这样的数据点，所以不考虑了
+                // 进行初始化，不清楚要传递什么东西（感觉维度信息可以传递进去），但是估计不会出这样的数据点，所以不考虑了
                 //  维度信息不需要传递进去，如果为空则默认为0.
                 //  如果超过原数组长度则展开进行赋值，const int a[6] = {1, 2, 3, 4, 5, 6} ok;
                 //  const int a[6] = {{1, 2, 3, 4}, {5, 6}} 不行
+                attributes.addArrayInitVal(initValAttributes);
             }
         }
-        // TODO: 添加信息: name, dimensionAttributes, initValAttributes
-        //  插入符号表
+        // 添加信息: name, dimensionAttributes, initValAttributes
+        attributes.setType(typeAttributes.getType());
+        attributes.setName(name);
+        if (attributes.getSymbolType() == SymbolType.ARRAY)
+            attributes.setDimensions(dimensions);
+        currentTable.addItem(attributes);       //  插入符号表
         return symbolTableItem;
     }
 
@@ -119,11 +132,14 @@ public class ErrorDetection {
             if (tokenType == TokenType.ConstExp) {
                 // variable
                 SymbolTableItem variableAttributes = detectConstExp(son, currentTable);
-                // TODO: 将解析获得的变量的值复制到当前节点Attribute中，并且返回
+                // TODO将解析获得的变量的值复制到当前节点Attribute中，并且返回
+                attributes.addArrayInitVal(variableAttributes);
+                attributes.combineAttributes(variableAttributes);
             } else if (tokenType == TokenType.ConstInitVal) {
                 // array
                 SymbolTableItem arrayAttributes = detectConstInitVal(son, currentTable);
-                // TODO: 如果解析获得了值则有初始值，否则默认初始值为0.
+                // TODO如果解析获得了值则有初始值，否则默认初始值为0.
+                attributes.addArrayInitVal(arrayAttributes);
             }
         }
         return attributes;
@@ -137,7 +153,7 @@ public class ErrorDetection {
             TokenType tokenType = son.getTokenType();
             if (tokenType == TokenType.BType) {
                 bTypeAttributes = detectBType(son);
-                // TODO：填写BType信息
+                // TODO填写BType信息
             } else if (tokenType == TokenType.VarDef) {
                 detectVarDef(son, currentTable, bTypeAttributes);
             }
@@ -155,16 +171,21 @@ public class ErrorDetection {
                 if (currentTable.findIdentInCurrentTable(son.getTokenString())) {
                     allFalse.put(son, 'b');
                 }
+                attributes.setName(son.getTokenString());
             } else if (tokenType == TokenType.ConstExp) {
                 arrayDimensions++;
                 SymbolTableItem constExpAttributes = detectConstExp(son, currentTable);
-                // TODO：获得当前维度大小。将结果保存至attributes
+                // TODO获得当前维度大小。将结果保存至attributes
             } else if (tokenType == TokenType.InitVal) {
                 SymbolTableItem initValAttributes = detectInitVal(son, currentTable);
-                // TODO: 获得初始值，若为空则默认赋值0。支持展开。需要将值填写到Attributes中
+                // TODO获得初始值，若为空则默认赋值0。支持展开。需要将值填写到Attributes中
+                attributes.addArrayInitVal(initValAttributes);
             }
         }
-        // TODO：插入符号表
+        // TODO插入符号表
+        attributes.setType(typeAttributes.getType());
+        attributes.setDimensions(arrayDimensions);
+        currentTable.addItem(attributes);
         return attributes;
     }
 
@@ -175,10 +196,11 @@ public class ErrorDetection {
             TokenType tokenType = son.getTokenType();
             if (tokenType == TokenType.Exp) {
                 SymbolTableItem expAttributes = detectExp(son, currentTable);
-                // TODO：汇总得到的值
+                attributes.addArrayInitVal(expAttributes); // TODO汇总得到的值
             } else if (tokenType == TokenType.InitVal) {
                 SymbolTableItem initValAttributes = detectInitVal(son, currentTable);
-                // TODO: 汇总得到的值，使用数组ArrayList模仿树形结构
+                // TODO汇总得到的值，使用数组ArrayList模仿树形结构
+                attributes.addArrayInitVal(initValAttributes);
             }
         }
         return attributes;
@@ -187,26 +209,39 @@ public class ErrorDetection {
     private SymbolTableItem detectFuncDef(Token funcDef, SymbolTable currentTable) {
         ArrayList<Token> sons = funcDef.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
+        attributes.setSymbolType(SymbolType.FUNCTION);
         SymbolTableItem typeAttributes = null;
         SymbolTableItem paramsAttributes = null;
         SymbolTable sonTable = null;
+        int insert = 1;
         for (Token son : sons) {
             TokenType tokenType = son.getTokenType();
             if (tokenType == TokenType.FuncType) {
                 typeAttributes = detectFuncType(son, currentTable);
+                attributes.setType(typeAttributes.getType());
             } else if (tokenType == TokenType.IDENFR) {
                 if (currentTable.findIdentInCurrentTable(son.getTokenString())) {
                     allFalse.put(son, 'b');
+                    insert = 0;
                 }
+                attributes.setName(son.getTokenString());
             } else if (tokenType == TokenType.FuncFParams) {
                 sonTable = new SymbolTable(currentTable, currentTable.getIndex());
                 paramsAttributes = detectFuncFParams(son, sonTable);
-                // TODO: 当前符号表中插入函数名+参数列表
+                attributes.setFuncParams(paramsAttributes.getFuncParams());
+                // TODO当前符号表中插入函数名+参数列表
             } else if (tokenType == TokenType.Block) {
-                detectBlock(son, sonTable, typeAttributes, Boolean.FALSE);
+                if (sonTable == null) {
+                    sonTable = new SymbolTable(currentTable, currentTable.getIndex());
+                }
+                if (insert == 1) currentTable.addItem(attributes);
+                detectBlock(son, sonTable, typeAttributes, false);
                 // TODO: 这里的BLOCK应该根据类型检验其中的return语句
+                checkReturn(son, typeAttributes.getType());
+
             }
         }
+//        currentTable.addItem(attributes);   // add this function into table
         return attributes;
     }
 
@@ -218,7 +253,8 @@ public class ErrorDetection {
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.Block) {
                 sonTable = new SymbolTable(currentTable, currentTable.getIndex());
-                detectBlock(son, sonTable, typeAttributes, Boolean.FALSE);
+                detectBlock(son, sonTable, typeAttributes, false);
+                checkReturn(son, "int");
             }
         }
         return null;
@@ -244,7 +280,8 @@ public class ErrorDetection {
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.FuncFParam) {
                 paramAttributes = detectFuncFParam(son, currentTable);
-                // TODO: 把这个参数的信息增加到总参数列表的信息中。
+                // TODO把这个参数的信息增加到总参数列表的信息中。
+                attributes.addFuncParam(paramAttributes);   // add funcFParam
             }
         }
         return attributes;
@@ -256,14 +293,17 @@ public class ErrorDetection {
         SymbolTableItem typeAttributes = null;
         SymbolTableItem constExpAttributes = null;
         int dimensions = 0;
+        attributes.setSymbolType(SymbolType.VARIABLE);  // assume it is a variable
         for (Token son : sons) {
             TokenType tokenType = son.getTokenType();
             if (tokenType == TokenType.BType) {
                 typeAttributes = detectBType(son);
+                attributes.setType(typeAttributes.getType());   // set type
             } else if (tokenType == TokenType.IDENFR) {
                 if (currentTable.findIdentInCurrentTable(son.getTokenString())) {
                     allFalse.put(son, 'b');
                 }
+                attributes.setName(son.getTokenString());   // set name
             } else if (tokenType == TokenType.LBRACK) {
                 dimensions++;
             } else if (tokenType == TokenType.ConstExp) {
@@ -271,22 +311,51 @@ public class ErrorDetection {
                 // TODO: 可以据此确定数组各个维度的大小
             }
         }
-        // TODO：增加维度大小dimensions
+        // TODO增加维度大小dimensions
         //  在符号表中增加表项
+        attributes.setDimensions(dimensions);
+        currentTable.addItem(attributes);
         return attributes;
     }
 
     private SymbolTableItem detectBlock(Token block, SymbolTable currentTable,
                                         SymbolTableItem typeAttributes, Boolean inLoop) {
         ArrayList<Token> sons = block.getSons();
+        Token finalToken = null;
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.BlockItem) {
                 detectBlockItem(son, currentTable, typeAttributes, inLoop);
+                finalToken = son;
             }
         }
         return null;
     }
 
+    private void checkReturn(Token token, String type) {
+        // TODO: checkReturn
+        if (!type.equals("int")) return;
+        ArrayList<Token> sons = token.getSons();
+        boolean noReturnFlag = true;
+        for (int i = sons.size() - 1; i >= 0; i--) {
+            if (sons.get(i).getTokenType() == TokenType.BlockItem) {
+                Token blockItemToken = sons.get(i);
+                if (blockItemToken.getSons().get(0).getTokenType() == TokenType.Stmt) {
+                    Token stmtToken = blockItemToken.getSons().get(0);
+                    if (stmtToken.getSons().get(0).getTokenType() == TokenType.RETURNTK) {
+                        noReturnFlag = false;
+                    }
+                }
+                break;
+            }
+        }
+        if (noReturnFlag) {
+            for (int i = sons.size() - 1; i >= 0; i--) {
+                if (sons.get(i).getTokenType() == TokenType.RBRACE) {
+                    allFalse.put(sons.get(i), 'g');
+                }
+            }
+        }
+    }
     private SymbolTableItem detectBlockItem(Token blockItem, SymbolTable currentTable,
                                             SymbolTableItem typeAttributes, boolean inLoop) {
         ArrayList<Token> sons = blockItem.getSons();
@@ -308,8 +377,11 @@ public class ErrorDetection {
         if (firstTokenType == TokenType.LVal) {
             for (Token son : sons) {
                 if (son.getTokenType() == TokenType.LVal) {
-                    detectLVal(son, currentTable);
-                    // TODO： 这里得到解析LVal的Attributes后，进行解析判断，如果是常量则报错。
+                    SymbolTableItem lValAttributes = detectLVal(son, currentTable);
+                    // TOD这里得到解析LVal的Attributes后，进行解析判断，如果是常量则报错。
+                    if (lValAttributes.isConst()) {
+                        allFalse.put(son, 'h');
+                    }
                 } else if (son.getTokenType() == TokenType.Exp) {
                     detectExp(son, currentTable);
                 }
@@ -330,11 +402,11 @@ public class ErrorDetection {
                 if (son.getTokenType() == TokenType.Cond) {
                     detectCond(son, currentTable);
                 } else if (son.getTokenType() == TokenType.Stmt) {
-                    detectStmt(son, currentTable, typeAttributes, Boolean.TRUE);
+                    detectStmt(son, currentTable, typeAttributes, true);
                 }
             }
         } else if (firstTokenType == TokenType.BREAKTK || firstTokenType == TokenType.CONTINUETK) {
-            if (inLoop == Boolean.FALSE) {
+            if (!inLoop) {
                 allFalse.put(firstToken, 'm');
             }
         } else if (firstTokenType == TokenType.PRINTFTK) {
@@ -349,10 +421,21 @@ public class ErrorDetection {
                 }
             }
             if (expNum != strExpNum) {
-                allFalse.put(firstToken, 'i');
+                allFalse.put(firstToken, 'l');
             }
         } else if (firstTokenType == TokenType.Exp) {
             detectExp(firstToken, currentTable);
+        } else if (firstTokenType == TokenType.RETURNTK) {
+            boolean hasExp = false;
+            for (Token son : sons) {
+                if (son.getTokenType() == TokenType.Exp) {
+                    detectExp(son, currentTable);
+                    hasExp = true;
+                }
+            }
+            if (typeAttributes.getType().equals("void") && hasExp) {
+                allFalse.put(firstToken, 'f');
+            }
         }
         return null;
     }
@@ -360,14 +443,25 @@ public class ErrorDetection {
     private int checkStrCon(Token formatStr) {
         String formatString = formatStr.getTokenString();
         int strExpNum = 0;
-        for (int i = 0; i < formatString.length(); i++) {
+        for (int i = 1; i < formatString.length() - 1; i++) {
             if (formatString.charAt(i) == '\\' && i + 1 < formatString.length() &&
                     formatString.charAt(i + 1) != 'n') {
                 allFalse.put(formatStr, 'a');
+                break;
             }
             if (formatString.charAt(i) == '%' && i + 1 < formatString.length() &&
                     formatString.charAt(i + 1) == 'd') {
                 strExpNum++;
+            }
+            if (formatString.charAt(i) == '%' && i + 1 < formatString.length() &&
+                    formatString.charAt(i + 1) != 'd') {
+                allFalse.put(formatStr, 'a');
+                break;
+            }
+            char c = formatString.charAt(i);
+            if (c != 32 && c != 33 && c != 37 && (c < 40 || c > 126)) {
+                allFalse.put(formatStr, 'a');
+                break;
             }
         }
         return strExpNum;
@@ -381,6 +475,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.AddExp) {
                 addExpAttributes = detectAddExp(son, currentTable);
                 // TODO: 整合addExpAttributes和attributes
+                attributes.combineAttributes(addExpAttributes);
             }
         }
         return attributes;
@@ -404,21 +499,40 @@ public class ErrorDetection {
         SymbolTableItem attributes = new SymbolTableItem();
         SymbolTableItem lValAttributes = null;
         ArrayList<Token> sons = lVal.getSons();
+        attributes.setSymbolType(SymbolType.VARIABLE);
         int arrayDimensions = 0;
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.IDENFR) {
-                lValAttributes = currentTable.findIdentInAllTable(lVal.getTokenString());
-                // TODO: 判断解析LVal的返回值，得到所有属性，判断是否是常量
+                attributes.setName(son.getTokenString());
+                lValAttributes = currentTable.findIdentInAllTable(son.getTokenString());
+                // TODO判断解析LVal的返回值，得到所有属性，判断是否是常量
                 //  在这里不判断是否是常量，因为PrimaryExp中可能调用LVal，所以在这类就检查这些值，是否之前定义过
-                //  定义过则整合Attributes，为定义过则返回Null
+                //  定义过则整合Attributes，未定义过则返回Null
+                if (lValAttributes == null) {
+                    allFalse.put(lVal, 'c');
+                    attributes.setConst(false);
+                } else {
+                    attributes.setConst(lValAttributes.isConst());
+                    attributes.setType(lValAttributes.getType());
+                }
+//                else {
+//                    attributes.cloneAttributes(lValAttributes);
+//                }
             } else if (son.getTokenType() == TokenType.LBRACK) {
                 arrayDimensions++;
+                attributes.setSymbolType(SymbolType.ARRAY);
                 // TODO：维度定西增加；
             } else if (son.getTokenType() == TokenType.Exp) {
                 SymbolTableItem expAttributes = detectExp(son, currentTable);
                 // TODO：得到的结果整合
+
             }
         }
+        int currentDimensions = 0;
+        if (lValAttributes != null) {
+            currentDimensions = Math.max(0, lValAttributes.getDimensions() - arrayDimensions);
+        }
+        attributes.setDimensions(currentDimensions);
         return attributes;
     }
 
@@ -431,13 +545,17 @@ public class ErrorDetection {
                 if (son.getTokenType() == TokenType.Exp) {
                     SymbolTableItem expAttributes = detectExp(son, currentTable);
                     // TODO: combine attributes;
+                    attributes.combineAttributes(expAttributes);
                 }
             }
         } else if (firstToken.getTokenType() == TokenType.LVal) {
             SymbolTableItem lValAttributes = detectLVal(firstToken, currentTable);
             // TODO: combine
+            attributes.combineAttributes(lValAttributes);
         } else if (firstToken.getTokenType() == TokenType.Number) {
             // TODO: combine
+            attributes.setType("int");
+            attributes.setDimensions(0);
         }
         return attributes;
     }
@@ -449,20 +567,35 @@ public class ErrorDetection {
         if (firstToken.getTokenType() == TokenType.PrimaryExp) {
             SymbolTableItem primaryAttributes = detectPrimaryExp(firstToken, currentTable);
             // TODO: combine
+            attributes.combineAttributes(primaryAttributes);
         } else if (firstToken.getTokenType() == TokenType.IDENFR) {
             SymbolTableItem functionAttributes = currentTable.findIdentInAllTable(firstToken.getTokenString());
+            SymbolTableItem funcRParamsAttributes = new SymbolTableItem();
             for (Token son : sons) {
                 if (son.getTokenType() == TokenType.FuncRParams) {
-                    SymbolTableItem funcRParamsAttributes = detectFuncRParams(son, currentTable);
+                    funcRParamsAttributes = detectFuncRParams(son, currentTable);
                     // TODO: Check FuncRParams with the functionAttributes
+
                 }
             }
+            if (functionAttributes == null) {
+                allFalse.put(firstToken, 'c');
+            } else {
+                int errorType = funcRParamsAttributes.checkFuncParams(functionAttributes);
+                if (errorType == 1) {
+                    allFalse.put(firstToken, 'd');
+                } else if (errorType == 2) {
+                    allFalse.put(firstToken, 'e');
+                }
+            }
+
         } else if (firstToken.getTokenType() == TokenType.UnaryOp) {
             SymbolTableItem unaryOpAttributes = detectUnaryOp(firstToken, currentTable);
             for (Token son : sons) {
                 if (son.getTokenType() == TokenType.UnaryExp) {
                     SymbolTableItem unaryExpAttributes = detectUnaryExp(son, currentTable);
                     // TODO: combine the unaryExp attributes with unaryOp attributes;
+                    attributes.combineAttributes(unaryOpAttributes);
                 }
             }
         }
@@ -492,6 +625,7 @@ public class ErrorDetection {
                 expNumber++;
                 SymbolTableItem expAttributes = detectExp(son, currentTable);
                 // TODO: combine
+                attributes.addFuncParam(expAttributes);
             }
         }
         // TODO: combine expNumber
@@ -505,6 +639,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.UnaryExp) {
                 SymbolTableItem unaryExpAttributes = detectUnaryExp(son, currentTable);
                 // TODO: 整合结果
+                attributes.combineAttributes(unaryExpAttributes);
             }
         }
         return attributes;
@@ -517,6 +652,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.MulExp) {
                 SymbolTableItem mulExpAttributes = detectMulExp(son, currentTable);
                 // TODO: 整合结果
+                attributes.combineAttributes(mulExpAttributes);
             }
         }
         return attributes;
@@ -529,6 +665,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.AddExp) {
                 SymbolTableItem addExpAttributes = detectAddExp(son, currentTable);
                 // TODO: 整合结果
+                attributes.combineAttributes(addExpAttributes);
             }
         }
         return attributes;
@@ -541,6 +678,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.RelExp) {
                 SymbolTableItem relExpAttributes = detectRelExp(son, currentTable);
                 // TODO: 整合结果
+                attributes.combineAttributes(relExpAttributes);
             }
         }
         return attributes;
@@ -553,6 +691,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.EqExp) {
                 SymbolTableItem EqExpAttributes = detectEqExp(son, currentTable);
                 // TODO: 整合结果
+                attributes.combineAttributes(EqExpAttributes);
             }
         }
         return attributes;
@@ -565,6 +704,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.LAndExp) {
                 SymbolTableItem lAndExpAttributes = detectLAndExp(son, currentTable);
                 // TODO: 整合结果
+                attributes.combineAttributes(lAndExpAttributes);
             }
         }
         return attributes;
@@ -577,6 +717,7 @@ public class ErrorDetection {
             if (son.getTokenType() == TokenType.AddExp) {
                 SymbolTableItem addExpAttributes = detectAddExp(son, currentTable);
                 // TODO: combine
+                attributes.combineAttributes(addExpAttributes);
             }
         }
         return attributes;

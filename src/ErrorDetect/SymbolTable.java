@@ -35,7 +35,19 @@ public class SymbolTable extends SymbolRecord {
     }
 
     public SymbolTableItem findIdentInAllTable(String ident) {
-        return null;
+        SymbolTableItem targetItem = null;
+        for (SymbolRecord symbolRecord : symbolRecords) {
+            if (symbolRecord instanceof SymbolTableItem && ((SymbolTableItem) symbolRecord).getName().equals(ident)) {
+                targetItem = (SymbolTableItem) symbolRecord;
+            }
+        }
+        if (targetItem == null) {
+            if (fatherTable == null) {
+                return null;
+            }
+            return fatherTable.findIdentInAllTable(ident);
+        }
+        return targetItem;
     }
 
     public int getIndexInFatherTable() {

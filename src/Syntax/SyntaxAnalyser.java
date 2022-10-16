@@ -577,49 +577,47 @@ public class SyntaxAnalyser {
             if (tokenType == TokenType.IDENFR) {
                 int flag = -1;
                 for (int i = cur_pos; i < tokens.size(); i++) {
-                    if (tokens.get(i).getTokenType() == TokenType.SEMICN) {
-                        flag = 2;
-                        break;
-                    } else if (tokens.get(i).getTokenType() == TokenType.ASSIGN) {
+                    if (tokens.get(i).getTokenType() == TokenType.ASSIGN) {
                         flag = 0;
                         break;
                     }
                 }
                 if (flag == 0) {
+                    int traceBackPoint = cur_pos;
                     stmt.addSons(parseLVal());
                     if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.ASSIGN) {
-                        throw new SyntaxException("Stmt: not =");
-                    }
-                    stmt.addSons(tokens.get(cur_pos));
-                    cur_pos++;  // accept =
-                    checkSize();
-                    TokenType tokenTypeExp = tokens.get(cur_pos).getTokenType();
-                    if (tokenTypeExp == TokenType.GETINTTK) {
+                        cur_pos = traceBackPoint;
+                        stmt.addSons(parseExp());
+                    } else {
                         stmt.addSons(tokens.get(cur_pos));
-                        cur_pos++;  // accept getint
-                        if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
-                            throw new SyntaxException("Stmt: not (");
-                        }
-                        stmt.addSons(tokens.get(cur_pos));
-                        cur_pos++;  // accept (
-                        if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
-                            allFalse.put(tokens.get(cur_pos - 1), 'j');
-                            stmt.addSons(new Token(TokenType.RPARENT, ")"));
-//                            throw new Syntax.SyntaxException("Stmt: not )");
-                        } else {
+                        cur_pos++;  // accept =
+                        checkSize();
+                        TokenType tokenTypeExp = tokens.get(cur_pos).getTokenType();
+                        if (tokenTypeExp == TokenType.GETINTTK) {
                             stmt.addSons(tokens.get(cur_pos));
-                            cur_pos++;  // accept )
+                            cur_pos++;  // accept getint
+                            if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.LPARENT) {
+                                throw new SyntaxException("Stmt: not (");
+                            }
+                            stmt.addSons(tokens.get(cur_pos));
+                            cur_pos++;  // accept (
+                            if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.RPARENT) {
+                                allFalse.put(tokens.get(cur_pos - 1), 'j');
+                                stmt.addSons(new Token(TokenType.RPARENT, ")"));
+//                            throw new Syntax.SyntaxException("Stmt: not )");
+                            } else {
+                                stmt.addSons(tokens.get(cur_pos));
+                                cur_pos++;  // accept )
+                            }
+                        } else if (tokenTypeExp == TokenType.PLUS || tokenTypeExp == TokenType.MINU ||
+                                tokenTypeExp == TokenType.NOT || tokenTypeExp == TokenType.IDENFR ||
+                                tokenTypeExp == TokenType.LPARENT || tokenTypeExp == TokenType.INTCON) {
+                            Token exp = parseExp(); // Exp branch
+                            stmt.addSons(exp);
                         }
-                    } else if (tokenTypeExp == TokenType.PLUS || tokenTypeExp == TokenType.MINU ||
-                            tokenTypeExp == TokenType.NOT || tokenTypeExp == TokenType.IDENFR ||
-                            tokenTypeExp == TokenType.LPARENT || tokenTypeExp == TokenType.INTCON) {
-                        Token exp = parseExp(); // Exp branch
-                        stmt.addSons(exp);
                     }
-                } else if (flag == 2) {
-                    stmt.addSons(parseExp());
                 } else {
-                    throw new SyntaxException("Stmt: undefine");
+                    stmt.addSons(parseExp());
                 }
             } else if (tokenType == TokenType.BREAKTK) {
                 stmt.addSons(tokens.get(cur_pos));
