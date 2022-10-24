@@ -584,11 +584,13 @@ public class SyntaxAnalyser {
                 }
                 if (flag == 0) {
                     int traceBackPoint = cur_pos;
-                    stmt.addSons(parseLVal());
+                    Token lVal = parseLVal();
+//                    stmt.addSons(parseLVal());
                     if (cur_pos >= tokens.size() || tokens.get(cur_pos).getTokenType() != TokenType.ASSIGN) {
                         cur_pos = traceBackPoint;
                         stmt.addSons(parseExp());
                     } else {
+                        stmt.addSons(lVal);
                         stmt.addSons(tokens.get(cur_pos));
                         cur_pos++;  // accept =
                         checkSize();

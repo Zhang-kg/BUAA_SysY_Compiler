@@ -18,16 +18,7 @@ public class ErrorDetection {
         detectCompUnit(root);
     }
 
-    public Token errorDetection(Token root) {
-        detectCompUnit(root);
-        return root;
-    }
-
-    public HashMap<Token, Character> getAllFalse() {
-        return allFalse;
-    }
-
-    private Token detectCompUnit(Token compUnit) {
+    private void detectCompUnit(Token compUnit) {
         rootTable = new SymbolTable(null, 0);
         ArrayList<Token> sons = compUnit.getSons();
         for (Token token : sons) {
@@ -40,10 +31,9 @@ public class ErrorDetection {
                 detectMainFuncDef(token, rootTable);
             }
         }
-        return compUnit;
     }
 
-    private SymbolTableItem detectDecl(Token decl, SymbolTable currentTable) {
+    private void detectDecl(Token decl, SymbolTable currentTable) {
         ArrayList<Token> sons = decl.getSons();
         for (Token token : sons) {
             TokenType tokenType = token.getTokenType();
@@ -53,23 +43,20 @@ public class ErrorDetection {
                 detectVarDecl(token, currentTable);
             }
         }
-        return null;
     }
 
-    private SymbolTableItem detectConstDecl(Token constDecl, SymbolTable currentTable) {
+    private void detectConstDecl(Token constDecl, SymbolTable currentTable) {
         ArrayList<Token> sons = constDecl.getSons();
         SymbolTableItem constDeclAttributes = new SymbolTableItem();
         SymbolTableItem typeAttributes = null;
         for (Token son : sons) {
             TokenType tokenType = son.getTokenType();
-            if (tokenType == TokenType.CONSTTK) continue;
-            else if (tokenType == TokenType.BType) {
+            if (tokenType == TokenType.BType) {
                 typeAttributes = detectBType(son);
             } else if (tokenType == TokenType.ConstDef) {
                 detectConstDef(son, currentTable, typeAttributes);
             }
         }
-        return constDeclAttributes;
     }
 
     private SymbolTableItem detectBType(Token BType) {
@@ -84,11 +71,8 @@ public class ErrorDetection {
         return bTypeAttributes;
     }
 
-    private SymbolTableItem detectConstDef(Token constDef, SymbolTable currentTable, SymbolTableItem typeAttributes) {
-//        String type = typeAttributes.getType();
+    private void detectConstDef(Token constDef, SymbolTable currentTable, SymbolTableItem typeAttributes) {
         String name = "";
-        SymbolTableItem symbolTableItem = new SymbolTableItem();
-//        ArrayList<Integer> dimensions = new ArrayList<>();
         int dimensions = 0;
         ArrayList<Token> sons = constDef.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
@@ -103,7 +87,6 @@ public class ErrorDetection {
                 }
             } else if (tokenType == TokenType.ConstExp) {
                 SymbolTableItem dimensionAttributes = detectConstExp(son, currentTable);
-//                dimensions.add(dimensionAttributes.getValue()); // add Attributes
                 attributes.setSymbolType(SymbolType.ARRAY);
                 dimensions++;
             } else if (tokenType == TokenType.ConstInitVal) {
@@ -112,7 +95,7 @@ public class ErrorDetection {
                 //  维度信息不需要传递进去，如果为空则默认为0.
                 //  如果超过原数组长度则展开进行赋值，const int a[6] = {1, 2, 3, 4, 5, 6} ok;
                 //  const int a[6] = {{1, 2, 3, 4}, {5, 6}} 不行
-                attributes.addArrayInitVal(initValAttributes);
+//                attributes.addArrayInitVal(initValAttributes);
             }
         }
         // 添加信息: name, dimensionAttributes, initValAttributes
@@ -121,7 +104,6 @@ public class ErrorDetection {
         if (attributes.getSymbolType() == SymbolType.ARRAY)
             attributes.setDimensions(dimensions);
         currentTable.addItem(attributes);       //  插入符号表
-        return symbolTableItem;
     }
 
     private SymbolTableItem detectConstInitVal(Token constInitVal, SymbolTable currentTable) {
@@ -133,19 +115,19 @@ public class ErrorDetection {
                 // variable
                 SymbolTableItem variableAttributes = detectConstExp(son, currentTable);
                 // TODO将解析获得的变量的值复制到当前节点Attribute中，并且返回
-                attributes.addArrayInitVal(variableAttributes);
+//                attributes.addArrayInitVal(variableAttributes);
                 attributes.combineAttributes(variableAttributes);
             } else if (tokenType == TokenType.ConstInitVal) {
                 // array
                 SymbolTableItem arrayAttributes = detectConstInitVal(son, currentTable);
                 // TODO如果解析获得了值则有初始值，否则默认初始值为0.
-                attributes.addArrayInitVal(arrayAttributes);
+//                attributes.addArrayInitVal(arrayAttributes);
             }
         }
         return attributes;
     }
 
-    private SymbolTableItem detectVarDecl(Token varDecl, SymbolTable currentTable) {
+    private void detectVarDecl(Token varDecl, SymbolTable currentTable) {
         ArrayList<Token> sons = varDecl.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
         SymbolTableItem bTypeAttributes = null;
@@ -158,10 +140,9 @@ public class ErrorDetection {
                 detectVarDef(son, currentTable, bTypeAttributes);
             }
         }
-        return attributes;
     }
 
-    private SymbolTableItem detectVarDef(Token varDef, SymbolTable currentTable, SymbolTableItem typeAttributes) {
+    private void detectVarDef(Token varDef, SymbolTable currentTable, SymbolTableItem typeAttributes) {
         ArrayList<Token> sons = varDef.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
         int arrayDimensions = 0;
@@ -179,14 +160,13 @@ public class ErrorDetection {
             } else if (tokenType == TokenType.InitVal) {
                 SymbolTableItem initValAttributes = detectInitVal(son, currentTable);
                 // TODO获得初始值，若为空则默认赋值0。支持展开。需要将值填写到Attributes中
-                attributes.addArrayInitVal(initValAttributes);
+//                attributes.addArrayInitVal(initValAttributes);
             }
         }
         // TODO插入符号表
         attributes.setType(typeAttributes.getType());
         attributes.setDimensions(arrayDimensions);
         currentTable.addItem(attributes);
-        return attributes;
     }
 
     private SymbolTableItem detectInitVal(Token initVal, SymbolTable currentTable) {
@@ -196,17 +176,17 @@ public class ErrorDetection {
             TokenType tokenType = son.getTokenType();
             if (tokenType == TokenType.Exp) {
                 SymbolTableItem expAttributes = detectExp(son, currentTable);
-                attributes.addArrayInitVal(expAttributes); // TODO汇总得到的值
+//                attributes.addArrayInitVal(expAttributes); // TODO汇总得到的值
             } else if (tokenType == TokenType.InitVal) {
                 SymbolTableItem initValAttributes = detectInitVal(son, currentTable);
                 // TODO汇总得到的值，使用数组ArrayList模仿树形结构
-                attributes.addArrayInitVal(initValAttributes);
+//                attributes.addArrayInitVal(initValAttributes);
             }
         }
         return attributes;
     }
 
-    private SymbolTableItem detectFuncDef(Token funcDef, SymbolTable currentTable) {
+    private void detectFuncDef(Token funcDef, SymbolTable currentTable) {
         ArrayList<Token> sons = funcDef.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
         attributes.setSymbolType(SymbolType.FUNCTION);
@@ -242,10 +222,9 @@ public class ErrorDetection {
             }
         }
 //        currentTable.addItem(attributes);   // add this function into table
-        return attributes;
     }
 
-    private SymbolTableItem detectMainFuncDef(Token mainFuncDef, SymbolTable currentTable) {
+    private void detectMainFuncDef(Token mainFuncDef, SymbolTable currentTable) {
         ArrayList<Token> sons = mainFuncDef.getSons();
         SymbolTable sonTable = null;
         SymbolTableItem typeAttributes = new SymbolTableItem();
@@ -257,7 +236,6 @@ public class ErrorDetection {
                 checkReturn(son, "int");
             }
         }
-        return null;
     }
 
     private SymbolTableItem detectFuncType(Token funcType, SymbolTable currentTable) {
@@ -318,8 +296,8 @@ public class ErrorDetection {
         return attributes;
     }
 
-    private SymbolTableItem detectBlock(Token block, SymbolTable currentTable,
-                                        SymbolTableItem typeAttributes, Boolean inLoop) {
+    private void detectBlock(Token block, SymbolTable currentTable,
+                             SymbolTableItem typeAttributes, Boolean inLoop) {
         ArrayList<Token> sons = block.getSons();
         Token finalToken = null;
         for (Token son : sons) {
@@ -328,7 +306,6 @@ public class ErrorDetection {
                 finalToken = son;
             }
         }
-        return null;
     }
 
     private void checkReturn(Token token, String type) {
@@ -356,8 +333,8 @@ public class ErrorDetection {
             }
         }
     }
-    private SymbolTableItem detectBlockItem(Token blockItem, SymbolTable currentTable,
-                                            SymbolTableItem typeAttributes, boolean inLoop) {
+    private void detectBlockItem(Token blockItem, SymbolTable currentTable,
+                                 SymbolTableItem typeAttributes, boolean inLoop) {
         ArrayList<Token> sons = blockItem.getSons();
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.Decl) {
@@ -366,11 +343,10 @@ public class ErrorDetection {
                 detectStmt(son, currentTable, typeAttributes, inLoop);
             }
         }
-        return null;
     }
 
-    private SymbolTableItem detectStmt(Token stmt, SymbolTable currentTable,
-                                       SymbolTableItem typeAttributes, boolean inLoop) {
+    private void detectStmt(Token stmt, SymbolTable currentTable,
+                            SymbolTableItem typeAttributes, boolean inLoop) {
         ArrayList<Token> sons = stmt.getSons();
         Token firstToken = sons.get(0);
         TokenType firstTokenType = firstToken.getTokenType();
@@ -437,7 +413,6 @@ public class ErrorDetection {
                 allFalse.put(firstToken, 'f');
             }
         }
-        return null;
     }
 
     private int checkStrCon(Token formatStr) {
@@ -481,7 +456,7 @@ public class ErrorDetection {
         return attributes;
     }
 
-    private SymbolTableItem detectCond(Token cond, SymbolTable currentTable) {
+    private void detectCond(Token cond, SymbolTable currentTable) {
         ArrayList<Token> sons = cond.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
         SymbolTableItem lOrExpAttributes = null;
@@ -491,7 +466,6 @@ public class ErrorDetection {
                 // TODO: combine together
             }
         }
-        return attributes;
     }
 
     private SymbolTableItem detectLVal(Token lVal, SymbolTable currentTable) {

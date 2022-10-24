@@ -8,11 +8,11 @@ public class SymbolTableItem extends SymbolRecord {
     private String type = "";    // int, void
     // for variable
     private boolean isConst = false;    // true or false
-    private int value;          // number
+//    private int value;          // number
 //    private ArrayList<Integer> values;  // for array [2][3] = {{1, 2, 3}, {4, 5, 6}} ==> [1, 2, 3, 4, 5, 6]
 //    private ArrayList<Integer> dimensions; // for array [2][3] ==> [2, 3]
     private int dimensions = 0;
-    private ArrayList<SymbolTableItem> arrayInitVal = new ArrayList<>();
+//    private ArrayList<SymbolTableItem> arrayInitVal = new ArrayList<>();
     // for function
     private ArrayList<SymbolTableItem> funcParams = new ArrayList<>();
 
@@ -36,17 +36,17 @@ public class SymbolTableItem extends SymbolRecord {
         return name;
     }
 
-    public void setValue(int value) {
-        this.value = value;
-    }
+//    public void setValue(int value) {
+//        this.value = value;
+//    }
+//
+//    public int getValue() {
+//        return value;
+//    }
 
-    public int getValue() {
-        return value;
-    }
-
-    public void addArrayInitVal(SymbolTableItem initValAttributes) {
-        this.arrayInitVal.add(initValAttributes);
-    }
+//    public void addArrayInitVal(SymbolTableItem initValAttributes) {
+//        this.arrayInitVal.add(initValAttributes);
+//    }
 
     public void setDimensions(int dimensions) {
         this.dimensions = dimensions;

@@ -45,20 +45,18 @@ public class Compiler {
         SyntaxAnalyser syntaxAnalyser = new SyntaxAnalyser(tokens, allFalse);
         Token root = syntaxAnalyser.getRoot();
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
-        TreePrinter treePrinter = new TreePrinter(root);
+//        TreePrinter treePrinter = new TreePrinter(root);
         ErrorDetection errorDetection = new ErrorDetection(root, allFalse);
-//        errorDetection.errorDetection(root);
-        errorDetection.getAllFalse();
         TreeMap<Integer, Character> treeMap = new TreeMap<>();
         for (Token token : allFalse.keySet()) {
             treeMap.put(token.getLineNumber(), allFalse.get(token));
 //            System.out.println(token.getLineNumber() + " " + allFalse.get(token));
         }
         for (Map.Entry entry : treeMap.entrySet()) {
-//            System.out.println(entry.getKey() + " " + entry.getValue());
-            filePrinter.outPrintlnError(entry.getKey() + " " + entry.getValue());
+            System.out.println(entry.getKey() + " " + entry.getValue());
+//            filePrinter.outPrintlnError(entry.getKey() + " " + entry.getValue());
         }
-
+        TreePrinter treePrinter = new TreePrinter(root);
         //for (TokenDefines.Token token : tokens) {
         //    filePrinter.outPrintlnNew(token.getTokenType() + " " + token.getTokenString());
         //    //System.out.println(token.getTokenType() + " " + token.getTokenString());
