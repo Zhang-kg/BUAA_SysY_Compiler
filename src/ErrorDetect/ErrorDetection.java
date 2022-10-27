@@ -299,11 +299,9 @@ public class ErrorDetection {
     private void detectBlock(Token block, SymbolTable currentTable,
                              SymbolTableItem typeAttributes, Boolean inLoop) {
         ArrayList<Token> sons = block.getSons();
-        Token finalToken = null;
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.BlockItem) {
                 detectBlockItem(son, currentTable, typeAttributes, inLoop);
-                finalToken = son;
             }
         }
     }

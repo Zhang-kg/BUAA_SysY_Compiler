@@ -13,12 +13,13 @@ import java.util.TreeMap;
 
 public class Compiler {
     public static void main(String[] args) {
+        // * 输入处理文本
         BasicScanner basicScanner = new BasicScanner();
         String ans = basicScanner.getAns();
-
+        // * 词法分析lexical analyser，接收ans。得到tokes序列
         LexicalAnalyser lexicalAnalyser = new LexicalAnalyser(ans);
         ArrayList<Token> tokens = lexicalAnalyser.getTokens();
-
+        // * 处理所有tokens行号
         HashMap<Integer, Integer> lineStartNumbers = basicScanner.getLineStartNumbers();
         HashMap<Integer, Integer> lineEndNumbers = basicScanner.getLineEndNumbers();
         int currentLineNumber = 1;
@@ -39,13 +40,14 @@ public class Compiler {
             }
             i++;
         }
-//        System.out.println("");
-//        System.out.println("------end------");
+        // * 声明allFalse Map用于存储所有的错误
         HashMap<Token, Character> allFalse = new HashMap<>();
+        // * 语法分析 syntax analyser
         SyntaxAnalyser syntaxAnalyser = new SyntaxAnalyser(tokens, allFalse);
         Token root = syntaxAnalyser.getRoot();
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
 //        TreePrinter treePrinter = new TreePrinter(root);
+        // * 错误处理 error detection，将HashMap转换成有序的TreeMap，用于输出
         ErrorDetection errorDetection = new ErrorDetection(root, allFalse);
         TreeMap<Integer, Character> treeMap = new TreeMap<>();
         for (Token token : allFalse.keySet()) {
@@ -56,11 +58,8 @@ public class Compiler {
             System.out.println(entry.getKey() + " " + entry.getValue());
 //            filePrinter.outPrintlnError(entry.getKey() + " " + entry.getValue());
         }
+        // * 回归测试语法分析的输出，已完成
         TreePrinter treePrinter = new TreePrinter(root);
-        //for (TokenDefines.Token token : tokens) {
-        //    filePrinter.outPrintlnNew(token.getTokenType() + " " + token.getTokenString());
-        //    //System.out.println(token.getTokenType() + " " + token.getTokenString());
-        //}
         
         filePrinter.closeOut();
     }
