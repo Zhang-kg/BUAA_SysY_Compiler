@@ -8,12 +8,13 @@ import java.util.ArrayList;
 public class Value {
     private Type type;
     private String name;
-    private ArrayList<Use> useArrayList;
+    private ArrayList<User> userArrayList;
     public static int reg_number = 0;
 
     public Value(Type type, String name) {
         this.type = type;
         this.name = name;
+        this.userArrayList = new ArrayList<>();
     }
 
     public Type getType() {
@@ -22,5 +23,9 @@ public class Value {
 
     public String getName() {
         return name;
+    }
+
+    public void addUser(User user) {
+        this.userArrayList.add(user);
     }
 }

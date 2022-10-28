@@ -1,5 +1,27 @@
 package IR.Values.InstructionIR;
 
-public class LoadInst extends Instruction {
+import IR.Values.BasicBlock;
+import IR.Values.Value;
 
+public class LoadInst extends Instruction {
+    private static int LOAD_NUM = 0;
+
+    public LoadInst(BasicBlock fatherBasicBlock, Value pointer) {
+        super(fatherBasicBlock, InstructionType.LOAD, pointer.getType(), allocName());
+        this.addOperand(pointer);
+    }
+
+    @Override
+    public String toString() {
+        return getName() + " = load " +
+                getType().toString() + ", " +
+                this.getOperands().get(0).getType() + " " +
+                this.getOperands().get(0).getName();
+
+
+    }
+
+    private static String allocName() {
+        return "LOAD_NO_" + LOAD_NUM++;
+    }
 }

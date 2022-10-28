@@ -16,4 +16,8 @@ public class PointerType extends Type {
         return innerValueType.toString() + "*";
     }
 
+    public Type getInnerValueType() {
+        return innerValueType;
+    }
+
 }

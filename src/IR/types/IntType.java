@@ -3,6 +3,7 @@ package IR.types;
 public class IntType extends Type {
     private int bit;
     public static final IntType i1 = new IntType(1);
+    public static final IntType i8 = new IntType(8);
     public static final IntType i32 = new IntType(32);
 
     public IntType(int bit) {

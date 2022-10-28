@@ -17,6 +17,10 @@ public class FunctionType extends Type {
         return true;
     }
 
+    public Type getReturnType() {
+        return returnType;
+    }
+
     @Override
     public String toString() {
         if (typeCache != null) {

@@ -20,10 +20,12 @@ import java.util.ArrayList;
 public class GenerateModule {
     private SymbolTable rootTable;
     private LLVMSymbolTable llvmSymbolTable;
+    private ArrayList<Use> useArrayList;
 
     public GenerateModule() {
         rootTable = new SymbolTable(null, 0);
         llvmSymbolTable = new LLVMSymbolTable();
+        useArrayList = new ArrayList<>();
     }
 
     public void parseModule(Token root) {
