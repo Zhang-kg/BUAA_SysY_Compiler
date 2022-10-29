@@ -19,4 +19,8 @@ public class ArrayType extends Type {
         // TODO: Check the actually format
         return "[" + num + " x " + elementType.toString() + "]";
     }
+
+    public Type getElementType() {
+        return elementType;
+    }
 }

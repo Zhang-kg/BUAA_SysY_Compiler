@@ -24,6 +24,6 @@ public class Instruction extends User {
     }
 
     private static String allocName() {
-        return "INST_" + INST_NUM++;
+        return "%INST_" + INST_NUM++;
     }
 }

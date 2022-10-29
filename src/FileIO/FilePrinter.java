@@ -27,11 +27,15 @@ public class FilePrinter {
     }
     
     public void outPrintlnSyntax(String line) {
-        out.println(line);
+//        out.println(line);
     }
 
     public void outPrintlnError(String line) {
 //        out.println(line);
+    }
+
+    public void outPrintlnLLVM(String line) {
+        out.println(line);
     }
     
     public void closeOut() {

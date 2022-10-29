@@ -22,6 +22,9 @@ public class InitValue extends Value {
         this.isArray = true;
     }
 
+    public Value getValue() {
+        return value;
+    }
 
     public Type getType() {
         if (!isArray) {

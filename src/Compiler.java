@@ -1,7 +1,9 @@
 import ErrorDetect.ErrorDetection;
 import FileIO.BasicScanner;
 import FileIO.FilePrinter;
+import FileIO.LLVMTreePrinter;
 import FileIO.TreePrinter;
+import IR.GenerateModule;
 import Lexical.LexicalAnalyser;
 import Syntax.SyntaxAnalyser;
 import TokenDefines.Token;
@@ -60,7 +62,9 @@ public class Compiler {
         }
         // * 回归测试语法分析的输出，已完成
         TreePrinter treePrinter = new TreePrinter(root);
-        
+        GenerateModule generateModule = new GenerateModule();
+        generateModule.parseModule(root);
+        LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
         filePrinter.closeOut();
     }
 }

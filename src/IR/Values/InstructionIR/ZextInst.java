@@ -15,7 +15,7 @@ public class ZextInst extends Instruction {
     }
 
     private static String allocName() {
-        return "ZEXT_NO_" + ZEXT_NUM++;
+        return "%ZEXT_NO_" + ZEXT_NUM++;
     }
 
     @Override

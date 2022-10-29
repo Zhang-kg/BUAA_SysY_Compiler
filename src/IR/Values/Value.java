@@ -25,6 +25,14 @@ public class Value {
         return name;
     }
 
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void addUser(User user) {
         this.userArrayList.add(user);
     }

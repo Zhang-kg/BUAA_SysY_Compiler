@@ -23,13 +23,13 @@ public class BinaryOperator extends Instruction {
 //            case DIV -> sb.append("div");
 //            case MOD -> sb.append("")
 //        }
-        return this.getInstructionType().toString().toLowerCase() + " " +
+        return getName() + " = " + this.getInstructionType().toString().toLowerCase() + " " +
                 this.getType().toString() + " " +
                 this.getOperands().get(0).getName() + ", " +
                 this.getOperands().get(1).getName();
     }
 
     private static String allocName() {
-        return "BINARY_INST_NO_" + BINARY_INST_NUM++;
+        return "%BINARY_INST_NO_" + BINARY_INST_NUM++;
     }
 }

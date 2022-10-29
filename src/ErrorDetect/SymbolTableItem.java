@@ -7,7 +7,6 @@ import java.util.ArrayList;
 public class SymbolTableItem extends SymbolRecord {
     private SymbolType symbolType = SymbolType.VARIABLE;  // Function, Variable, Array, FuncParam, Attributes
     private String name = "";    // ident, or a[1], b[0][1]
-    private String aftName = "";
     private String type = "";    // int, void
 
     private boolean isConst = false;    // true or false
@@ -19,15 +18,6 @@ public class SymbolTableItem extends SymbolRecord {
     // for function
     private ArrayList<SymbolTableItem> funcParams = new ArrayList<>();
 
-    private Value value;
-
-    public Value getValue() {
-        return value;
-    }
-
-    public void setValue(Value value) {
-        this.value = value;
-    }
 
     public SymbolTableItem() {
 
@@ -48,15 +38,6 @@ public class SymbolTableItem extends SymbolRecord {
     public String getName() {
         return name;
     }
-
-    public void setAftName(String aftName) {
-        this.aftName = aftName;
-    }
-
-    public String getAftName() {
-        return aftName;
-    }
-
     //    public void setValue(int value) {
 //        this.value = value;
 //    }

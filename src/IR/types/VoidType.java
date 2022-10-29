@@ -1,7 +1,7 @@
 package IR.types;
 
 public class VoidType extends Type {
-    private static final VoidType voidType = new VoidType();
+    public static final VoidType voidType = new VoidType();
 
     public static VoidType getVoidType() {
         return voidType;

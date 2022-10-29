@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 public class Module {
     private ArrayList<GlobalVariable> globalVariables;
+
     private ArrayList<Function> functions;
     private BasicBlock globalBasicBlock;
 
@@ -31,5 +32,13 @@ public class Module {
 
     public BasicBlock getGlobalBasicBlock() {
         return globalBasicBlock;
+    }
+
+    public void addFunction(Function function) {
+        this.functions.add(function);
+    }
+
+    public ArrayList<Function> getFunctions() {
+        return functions;
     }
 }

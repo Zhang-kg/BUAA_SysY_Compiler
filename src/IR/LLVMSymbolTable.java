@@ -34,6 +34,8 @@ public class LLVMSymbolTable extends SymbolTable {
     }
 
     public String addIdent(String befName) {
+        if (befName.charAt(0) != '%')
+            befName = "%" + befName;
         String aftName = befName;
         if (globalIdentChangeTable.containsKey(befName) || globalIdentSet.contains(befName)) {
             int i = 1;

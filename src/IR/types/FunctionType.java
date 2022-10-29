@@ -3,8 +3,8 @@ package IR.types;
 import java.util.ArrayList;
 
 public class FunctionType extends Type {
-    private final ArrayList<Type> argumentsType;
-    private final Type returnType;
+    private ArrayList<Type> argumentsType;
+    private Type returnType;
     private String typeCache = null;
 
     public FunctionType(ArrayList<Type> argumentsType, Type returnType) {
@@ -19,6 +19,18 @@ public class FunctionType extends Type {
 
     public Type getReturnType() {
         return returnType;
+    }
+
+    public void setReturnType(Type returnType) {
+        this.returnType = returnType;
+    }
+
+    public void setArgumentsType(ArrayList<Type> argumentsType) {
+        this.argumentsType = argumentsType;
+    }
+
+    public ArrayList<Type> getArgumentsType() {
+        return argumentsType;
     }
 
     @Override

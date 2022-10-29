@@ -13,9 +13,8 @@ public class SymbolTable extends SymbolRecord {
         this.indexInFatherTable = index;
     }
 
-    public int addItem(SymbolRecord symbolRecord) {
+    public void addItem(SymbolRecord symbolRecord) {
         this.symbolRecords.add(symbolRecord);
-        return symbolRecords.size();    // 1, 2, 3, ...
     }
 
     public void setFatherTable(SymbolTable fatherTable, int index) {

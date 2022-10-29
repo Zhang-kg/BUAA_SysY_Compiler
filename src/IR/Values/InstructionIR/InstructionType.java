@@ -7,7 +7,7 @@ public enum InstructionType {
     SUB,
     MUL,
     DIV,
-    MOD,
+    SREM,
     SHL,
     SHR,
     AND,

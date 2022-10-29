@@ -1,6 +1,7 @@
 package IR.Values.InstructionIR;
 
 import IR.Values.BasicBlock;
+import IR.Values.ConstantIR.ConstantInteger;
 import IR.Values.Value;
 import IR.types.IntType;
 
@@ -19,9 +20,19 @@ public class StoreInst extends Instruction {
         return "store " +
                 getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
                 getOperands().get(1).getType() + " " + getOperands().get(1).getName();
+//        if (getOperands().get(0) instanceof ConstantInteger) {
+//            string += getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", ";
+//        } else {
+//            string += getOperands().get(0).getType() + " %" + getOperands().get(0).getName() + ", ";
+//        }
+//        if (getOperands().get(1) instanceof ConstantInteger) {
+//            string += getOperands().get(1).getType() + " " + getOperands().get(1).getName();
+//        } else {
+//            string += getOperands().get(1).getType() + " %" + getOperands().get(1).getName();
+//        }
     }
 
     private static String allocName() {
-        return "STORE_NO_" + STORE_NUM++;
+        return "%STORE_NO_" + STORE_NUM++;
     }
 }
