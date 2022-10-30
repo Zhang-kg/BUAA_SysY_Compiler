@@ -45,6 +45,9 @@ public class BasicBlock extends Value {
     }
 
     public boolean isTerminated() {
+        if (instructions.size() == 0) {
+            return false;
+        }
         InstructionType instructionType = instructions.get(instructions.size() - 1).getInstructionType();
         return instructionType == InstructionType.BR ||
                 instructionType == InstructionType.CALL ||

@@ -16,7 +16,7 @@ public class IcmpInst extends Instruction {
 
     @Override
     public String toString() {
-        return getName() + " = icmp " + instructionType.toString().toLowerCase() +
+        return getName() + " = icmp " + instructionType.toString().toLowerCase() + " " +
                 this.getOperands().get(0).getType().toString() + " " +
                 this.getOperands().get(0).getName() + ", " +
                 this.getOperands().get(1).getName();

@@ -102,6 +102,18 @@ public class GenerateModule {
         Module.getMyModule().setGlobalVariables(globalVariables);
     }
 
+    private void checkBasicBlockTerminate(Function function, Type type) {
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            if (!basicBlock.isTerminated()) {
+                if (type == VoidType.voidType) {
+                    new RetInst(basicBlock);
+                } else {
+                    new RetInst(basicBlock, ConstantInteger.zero);
+                }
+            }
+        }
+    }
+
     private void parseDeclForIR(Token decl, SymbolTableForIR currentTable) {
         ArrayList<Token> sons = decl.getSons();
         for (Token son : sons) {
@@ -415,6 +427,7 @@ public class GenerateModule {
         Module.getMyModule().addFunction(function); // add Function to current Module
         currentTable.addItem(functionSymbol);
         // * 将currentFunction改回原来的Function
+        checkBasicBlockTerminate(currentFunction, functionType.getReturnType());
         currentFunction = befFunction;
         return null;
     }
@@ -442,6 +455,7 @@ public class GenerateModule {
                 isGlobal = true;
             }
         }
+        checkBasicBlockTerminate(currentFunction, IntType.i32);
         currentFunction = befFunction;
     }
 
@@ -573,6 +587,10 @@ public class GenerateModule {
     private void parseStmtForIR(Token stmt, SymbolTableForIR currentTable) {
         ArrayList<Token> sons = stmt.getSons();
         switch (sons.get(0).getTokenType()) {
+            case Exp: {
+                parseExpForIR(sons.get(0), currentTable);
+                break;
+            }
             case LVal: {
                 Value lVal = null;
                 Value valueFrom = null;
@@ -906,7 +924,7 @@ public class GenerateModule {
                 if (instructionType == InstructionType.ADD) {
                     return unaryExpValue;
                 } else if (instructionType == InstructionType.NOT) {
-                    return new IcmpInst(currentBasicBlock, InstructionType.NE, ConstantInteger.zero, unaryExpValue);
+                    return new IcmpInst(currentBasicBlock, InstructionType.EQ, ConstantInteger.zero, unaryExpValue);
                 }
                 if (unaryExpValue instanceof ConstantInteger) {
                     if (instructionType == InstructionType.SUB) {

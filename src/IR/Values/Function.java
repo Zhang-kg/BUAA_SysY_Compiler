@@ -24,7 +24,11 @@ public class Function extends Value {
     }
 
     public ArrayList<Type> getArgumentsType() {
-        return new ArrayList<>();
+        ArrayList<Type> argumentTypes = new ArrayList<>();
+        for (Value argument : arguments) {
+            argumentTypes.add(argument.getType());
+        }
+        return argumentTypes;
     }
 
     public ArrayList<BasicBlock> getBasicBlocks() {
