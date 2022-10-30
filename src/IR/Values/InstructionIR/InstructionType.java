@@ -6,7 +6,7 @@ public enum InstructionType {
     ADD,
     SUB,
     MUL,
-    SDIV,
+    DIV,
     SREM,
     SHL,
     SHR,
