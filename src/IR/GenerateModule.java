@@ -18,6 +18,7 @@ import TokenDefines.TokenType;
 
 import java.util.*;
 
+// * FINISH WEEK TEST
 public class GenerateModule {
     private SymbolTableForIR rootTable;
 //    private LLVMSymbolTable llvmSymbolTable;
