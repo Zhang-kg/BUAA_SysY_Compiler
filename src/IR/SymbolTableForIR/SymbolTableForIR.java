@@ -12,6 +12,7 @@ public class SymbolTableForIR extends SymbolRecordForIR {
     public SymbolTableForIR(SymbolTableForIR fatherTable, int index) {
         symbols = new ArrayList<>();
         this.indexInFatherTable = index;
+        this.fatherTable = fatherTable;
     }
 
     public void addItem(SymbolRecordForIR symbolRecordForIR) {

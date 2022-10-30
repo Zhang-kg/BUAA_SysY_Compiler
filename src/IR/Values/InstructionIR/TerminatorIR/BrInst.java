@@ -33,8 +33,8 @@ public class BrInst extends TerminatorInst {
     @Override
     public String toString() {
         if (conditionalBranch) {
-            return "br i1 " + getOperands().get(0).getName() +
-                    getOperands().get(1).getType() + " " + getOperands().get(1).getName() +
+            return "br i1 " + getOperands().get(0).getName() + " " +
+                    getOperands().get(1).getType() + " " + getOperands().get(1).getName() + " " +
                     getOperands().get(2).getType() + " " + getOperands().get(2).getName();
         } else {
             return "br " + getOperands().get(0).getType() + " " + getOperands().get(0).getName();

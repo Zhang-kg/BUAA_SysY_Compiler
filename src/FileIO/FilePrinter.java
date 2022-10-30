@@ -9,7 +9,7 @@ public class FilePrinter {
     private static final FilePrinter FILE_PRINTER = new FilePrinter();
     
     private FilePrinter(){
-        File outFile = new File("./output.txt");
+        File outFile = new File("./llvm_ir.txt");
         try {
             out = new PrintWriter(outFile);
         } catch (FileNotFoundException e) {

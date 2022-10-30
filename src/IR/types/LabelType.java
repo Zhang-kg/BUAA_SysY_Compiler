@@ -20,6 +20,6 @@ public class LabelType extends Type {
     }
 
     public static String getNewLabelName() {
-        return "Label_" + label_num++;
+        return "%Label_" + label_num++;
     }
 }

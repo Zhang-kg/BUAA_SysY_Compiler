@@ -2,6 +2,7 @@ package IR;
 
 import ErrorDetect.SymbolTable;
 import IR.Values.BasicBlock;
+import IR.Values.ConstantIR.ConstantString;
 import IR.Values.Function;
 import IR.Values.GlobalVariable;
 import SysYTokens.MainFuncDef;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 
 public class Module {
     private ArrayList<GlobalVariable> globalVariables;
-
+    private ArrayList<ConstantString> constantStrings;
     private ArrayList<Function> functions;
     private BasicBlock globalBasicBlock;
 
@@ -23,6 +24,7 @@ public class Module {
         globalVariables = new ArrayList<>();
         functions = new ArrayList<>();
         globalBasicBlock = new BasicBlock();
+        constantStrings = new ArrayList<>();
 //        llvmSymbolTable = new LLVMSymbolTable();
     }
 
@@ -40,5 +42,13 @@ public class Module {
 
     public ArrayList<Function> getFunctions() {
         return functions;
+    }
+
+    public void setConstantStrings(ArrayList<ConstantString> constantStrings) {
+        this.constantStrings = constantStrings;
+    }
+
+    public ArrayList<ConstantString> getConstantStrings() {
+        return constantStrings;
     }
 }

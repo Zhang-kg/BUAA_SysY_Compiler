@@ -18,6 +18,7 @@ import TokenDefines.TokenType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 
 public class GenerateModule {
@@ -35,11 +36,14 @@ public class GenerateModule {
         llvmSymbolTable = new LLVMSymbolTable();
         useArrayList = new ArrayList<>();
         declareFunctions = new HashMap<>();
-        declareFunctions.put("getint", new Function("getint", new FunctionType(null, IntType.i32)));
-        declareFunctions.put("putstr", new Function("putstr", new FunctionType(
+        declareFunctions.put("@getint", new Function("@getint", new FunctionType(null, IntType.i32)));
+        declareFunctions.put("@putstr", new Function("@putstr", new FunctionType(
                 new ArrayList<>(Arrays.asList(new PointerType(IntType.i8))), VoidType.voidType
         )));
-        declareFunctions.put("putint", new Function("putint", new FunctionType(
+        declareFunctions.put("@putint", new Function("@putint", new FunctionType(
+                new ArrayList<>(Arrays.asList(IntType.i32)), VoidType.voidType
+        )));
+        declareFunctions.put("@putch", new Function("@putch", new FunctionType(
                 new ArrayList<>(Arrays.asList(IntType.i32)), VoidType.voidType
         )));
     }
@@ -49,15 +53,15 @@ public class GenerateModule {
         for (Token son : sons) {
             switch (son.getTokenType()) {
                 case Decl:
-                    System.out.println("parse Decl");
+//                    System.out.println("parse Decl");
                     parseDeclForIR(son, rootTable);
                     break;
                 case FuncDef:
-                    System.out.println("parse funcDef");
+//                    System.out.println("parse funcDef");
                     parseFuncDefForIR(son, rootTable);
                     break;
                 case MainFuncDef: {
-                    System.out.println("parse mainFuncDef");
+//                    System.out.println("parse mainFuncDef");
 //                    Function mainFunction = new Function("MAIN_FUNC", new FunctionType(null, null));
 //                    currentFunction = mainFunction;
 //                    Module.getMyModule().addFunction(mainFunction);
@@ -70,6 +74,7 @@ public class GenerateModule {
                 }
             }
         }
+        Module.getMyModule().setConstantStrings(globalString);
     }
 
     private void parseDeclForIR(Token decl, SymbolTableForIR currentTable) {
@@ -382,7 +387,7 @@ public class GenerateModule {
         SymbolTableForIR sonTable;
         ArrayList<Token> sons = mainFuncDef.getSons();
 //        Function mainFunction = new Function(null, null);
-        Function mainFunction = new Function("MAIN_FUNC", new FunctionType(new ArrayList<>(), IntType.i32));
+        Function mainFunction = new Function("@main", new FunctionType(new ArrayList<>(), IntType.i32));
         Module.getMyModule().addFunction(mainFunction);
         Function befFunction = currentFunction;
         currentFunction = mainFunction;
@@ -506,12 +511,12 @@ public class GenerateModule {
         for (Token son : sons) {
             switch (son.getTokenType()) {
                 case Decl: {
-                    System.out.println("Decl");
+//                    System.out.println("Decl");
                     parseDeclForIR(son, currentTable);
                     break;
                 }
                 case Stmt: {
-                    System.out.println("Stmt");
+//                    System.out.println("Stmt");
                     parseStmtForIR(son, currentTable);
                     break;
                 }
@@ -536,7 +541,7 @@ public class GenerateModule {
                             break;
                         }
                         case GETINTTK: {
-                            valueFrom = new CallInst(currentBasicBlock, declareFunctions.get("getint"), null);
+                            valueFrom = new CallInst(currentBasicBlock, declareFunctions.get("@getint"), null);
                             break;
                         }
                         case Exp: {
@@ -588,24 +593,26 @@ public class GenerateModule {
                     currentFunction.addBasicBlock(elseBasicBlock);
                     currentFunction.addBasicBlock(postIfBasicBlock);
                     currentBasicBlock = postIfBasicBlock;
-                    String labelName = LabelType.getNewLabelName();
-                    trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                    labelName = LabelType.getNewLabelName();
-                    elseBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                    labelName = LabelType.getNewLabelName();
-                    postIfBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                    String labelName = LabelType.getNewLabelName();
+//                    trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                    labelName = LabelType.getNewLabelName();
+//                    elseBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                    labelName = LabelType.getNewLabelName();
+//                    postIfBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
                     new BrInst(befBasicBlock, cond, trueBasicBlock.getLabel(), elseBasicBlock.getLabel());
                     new BrInst(trueBasicBlock, postIfBasicBlock.getLabel());
                     new BrInst(elseBasicBlock, postIfBasicBlock.getLabel());
+                    currentBasicBlock = postIfBasicBlock;
                 } else {
                     currentFunction.addBasicBlock(trueBasicBlock);
                     currentFunction.addBasicBlock(postIfBasicBlock);
-                    String labelName = LabelType.getNewLabelName();
-                    trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                    labelName = LabelType.getNewLabelName();
-                    postIfBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                    String labelName = LabelType.getNewLabelName();
+//                    trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                    labelName = LabelType.getNewLabelName();
+//                    postIfBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
                     new BrInst(befBasicBlock, cond, trueBasicBlock.getLabel(), postIfBasicBlock.getLabel());
                     new BrInst(trueBasicBlock, postIfBasicBlock.getLabel());
+                    currentBasicBlock = postIfBasicBlock;
                 }
                 break;
             }
@@ -633,23 +640,23 @@ public class GenerateModule {
                 currentFunction.addBasicBlock(condBasicBlock);
                 currentFunction.addBasicBlock(trueBasicBlock);
                 currentFunction.addBasicBlock(postWhileBasicBlock);
-                String labelName = LabelType.getNewLabelName();
-                condBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                labelName = LabelType.getNewLabelName();
-                trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                labelName = LabelType.getNewLabelName();
-                postWhileBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                String labelName = LabelType.getNewLabelName();
+//                condBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                labelName = LabelType.getNewLabelName();
+//                trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
+//                labelName = LabelType.getNewLabelName();
+//                postWhileBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
                 new BrInst(befBasicBlock, condBasicBlock.getLabel());
                 new BrInst(condBasicBlock, cond, trueBasicBlock.getLabel(), postWhileBasicBlock.getLabel());
                 new BrInst(trueBasicBlock, condBasicBlock.getLabel());
                 break;
             }
             case BREAKTK: {
-                System.out.println("didn't parse Break");
+//                System.out.println("didn't parse Break");
                 break;
             }
             case CONTINUETK: {
-                System.out.println("didn't parse continue");
+//                System.out.println("didn't parse continue");
                 break;
             }
             case RETURNTK: {
@@ -675,8 +682,9 @@ public class GenerateModule {
                 for (Token son : sons) {
                     switch (son.getTokenType()) {
                         case STRCON: {
-                            strings = parseStrForIR(son.getTokenString());
-                            strstr = son.getTokenString();
+                            strstr = parseString(son.getTokenString());
+                            strings = parseStrForIR(strstr);
+                            strings.removeIf(e -> e.length() == 0);
                             break;
                         }
                         case Exp: {
@@ -686,7 +694,13 @@ public class GenerateModule {
                     }
                 }
                 for (String string : strings) {
-                    ConstantString constantString = new ConstantString(new PointerType(IntType.i8), string);
+                    int len = string.length() + 1;
+                    for (int i = 0; i < string.length(); i++) {
+                        if (string.charAt(i) == '\\')
+                            len--;
+                    }
+//                    ConstantString constantString = new ConstantString(new PointerType(IntType.i8), string);
+                    ConstantString constantString = new ConstantString(new PointerType(new ArrayType(IntType.i8, len)), string);
                     stringValues.add(constantString);
                     globalString.add(constantString);   // ? 全局信息中添加符号串信息
                 }
@@ -695,13 +709,18 @@ public class GenerateModule {
                 int i = 0;
                 while (i < strstr.length()) {
                     if (i + 1 < strstr.length() && strstr.charAt(i) == '%' && strstr.charAt(i + 1) == 'd') {
-                        new CallInst(currentBasicBlock, declareFunctions.get("putint"),
+                        new CallInst(currentBasicBlock, declareFunctions.get("@putint"),
                                 new ArrayList<>(Arrays.asList(exps.get(expIndex))));
                         expIndex++;
                         i += 2;
                     } else {
-                        new CallInst(currentBasicBlock, declareFunctions.get("putstr"),
-                                new ArrayList<>(Arrays.asList(stringValues.get(strIndex))));
+//                        Value value = new LoadInst(currentBasicBlock, stringValues.get(strIndex));
+//                        Value value1 = new GEPInst()// TODO：转化成GEP指令
+                        Value value1 = new GEPInst(currentBasicBlock, stringValues.get(strIndex));
+                        ArrayList<Value> arguments = new ArrayList<>();
+                        arguments.add(value1);
+                        new CallInst(currentBasicBlock, declareFunctions.get("@putstr"),
+                                arguments);
                         i += strings.get(strIndex).length();
                         strIndex++;
                     }
@@ -709,6 +728,14 @@ public class GenerateModule {
                 break;
             }
         }
+    }
+
+    private String parseString(String str) {
+        if (str.charAt(0) == '\"')
+            str = str.substring(1);
+        if (str.charAt(str.length() - 1) == '\"')
+            str = str.substring(0, str.length() - 1);
+        return str;
     }
 
     private ArrayList<String> parseStrForIR(String str) {
@@ -734,7 +761,7 @@ public class GenerateModule {
         ArrayList<Token> sons = cond.getSons();
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.LOrExp) {
-                return parseAddExpForIR(son, currentTable);
+                return parseLOrExpForIR(son, currentTable);
             }
         }
         System.out.println("Wrong parse LOrExp for IR");
@@ -937,13 +964,13 @@ public class GenerateModule {
                 }
                 Value value = parseAddExpForIR(son, currentTable);
                 if (op.equals("<")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SLT, lastValue, value);
+                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SLT, lastValue, value);
                 } else if (op.equals(">")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SGT, lastValue, value);
+                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SGT, lastValue, value);
                 } else if (op.equals("<=")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SLE, lastValue, value);
+                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SLE, lastValue, value);
                 } else if (op.equals(">=")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SGE, lastValue, value);
+                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SGE, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.LSS) {
                 op = "<";
@@ -966,12 +993,13 @@ public class GenerateModule {
             if (son.getTokenType() == TokenType.RelExp) {
                 if (lastValue == null) {
                     lastValue = parseRelExpForIR(son, currentTable);
+                    continue;
                 }
                 Value value = parseRelExpForIR(son, currentTable);
                 if (op.equals("==")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.EQ, lastValue, value);
+                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.EQ, lastValue, value);
                 } else if (op.equals("!=")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.NE, lastValue, value);
+                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.NE, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.EQL) {
                 op = "==";
@@ -990,6 +1018,7 @@ public class GenerateModule {
             if (son.getTokenType() == TokenType.EqExp) {
                 if (lastValue == null) {
                     lastValue = parseEqExpForIR(son, currentTable);
+                    continue;
                 }
                 Value value = parseEqExpForIR(son, currentTable);
                 if (op.equals("&&")) {
@@ -1009,9 +1038,10 @@ public class GenerateModule {
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.LAndExp) {
                 if (lastValue == null) {
-                    lastValue = parseEqExpForIR(son, currentTable);
+                    lastValue = parseLAndExpForIR(son, currentTable);
+                    continue;
                 }
-                Value value = parseEqExpForIR(son, currentTable);
+                Value value = parseLAndExpForIR(son, currentTable);
                 if (op.equals("||")) {
                     lastValue = new BinaryOperator(currentBasicBlock, InstructionType.OR, lastValue, value);
                 }

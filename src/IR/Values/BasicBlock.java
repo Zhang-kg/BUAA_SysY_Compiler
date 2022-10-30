@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class BasicBlock extends Value {
     private ArrayList<Instruction> instructions;
     private Function fatherFunction;
-    private Value label;
+    private Value label = new Value(LabelType.getLabelType(), LabelType.getNewLabelName());
     private static int BASIC_BLOCK_NUM = 0;
 
     public BasicBlock() {
@@ -36,9 +36,9 @@ public class BasicBlock extends Value {
         return "BASIC_BLOCK_" + BASIC_BLOCK_NUM++;
     }
 
-    public void setLabel(Value label) {
-        this.label = label;
-    }
+//    public void setLabel(Value label) {
+//        this.label = label;
+//    }
 
     public Value getLabel() {
         return label;

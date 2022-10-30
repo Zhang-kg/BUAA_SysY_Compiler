@@ -19,7 +19,8 @@ public class CallInst extends TerminatorInst {
     private boolean hasArgumentCache = false;
 
     public CallInst(BasicBlock fatherBasicBlock, Function function, ArrayList<Value> arguments) {
-        super(fatherBasicBlock, InstructionType.CALL, ((FunctionType)function.getType()).getReturnType(), allocName());
+        super(fatherBasicBlock, InstructionType.CALL,
+                ((FunctionType)function.getType()).getReturnType(), allocName());
         this.arguments = arguments;
         this.function = function;
     }
@@ -48,7 +49,7 @@ public class CallInst extends TerminatorInst {
         }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < arguments.size(); i++) {
-            sb.append(arguments.get(i).getType()).append(" ").append(arguments.get(i).getName());
+            sb.append(((FunctionType)function.getType()).getArgumentsType().get(i)).append(" ").append(arguments.get(i).getName());
             if (i != arguments.size() - 1) {
                 sb.append(", ");
             }

@@ -45,17 +45,17 @@ public class GEPInst extends Instruction {
         if (!isArray) {
             return getName() + " = getelementptr " +
                     ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
-                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + " " +
-                    "i32  0, i32 0";
+                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
+                    "i32 0, i32 0";
         } else if (constDim) {
             return getName() + " = getelementptr " +
                     ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
-                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + " " +
+                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
                     "i32 0, i32 " + num2;
         } else {
             return getName() + " = getelementptr " +
                     ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
-                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + " " +
+                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
                     "i32 0, i32 " + getOperands().get(1).getName();
         }
     }
