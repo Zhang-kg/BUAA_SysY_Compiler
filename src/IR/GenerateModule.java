@@ -992,7 +992,7 @@ public class GenerateModule {
                     ans = ((ConstantInteger) value1).getValue() * ((ConstantInteger) value2).getValue();
                     break;
                 }
-                case DIV: {
+                case SDIV: {
                     ans = ((ConstantInteger) value1).getValue() / ((ConstantInteger) value2).getValue();
                     break;
                 }
@@ -1022,8 +1022,8 @@ public class GenerateModule {
 //                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.MUL, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.MUL, lastValue, value);
                 } else if (op.equals("/")) {
-//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.DIV, lastValue, value);
-                    lastValue = binaryHelper(currentBasicBlock, InstructionType.DIV, lastValue, value);
+//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SDIV, lastValue, value);
+                    lastValue = binaryHelper(currentBasicBlock, InstructionType.SDIV, lastValue, value);
                 } else if (op.equals("%")) {
 //                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SREM, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.SREM, lastValue, value);
