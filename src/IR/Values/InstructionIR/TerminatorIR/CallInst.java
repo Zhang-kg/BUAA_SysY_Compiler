@@ -2,11 +2,9 @@ package IR.Values.InstructionIR.TerminatorIR;
 
 import IR.Values.BasicBlock;
 import IR.Values.Function;
-import IR.Values.InstructionIR.Instruction;
 import IR.Values.InstructionIR.InstructionType;
 import IR.Values.Value;
 import IR.types.FunctionType;
-import IR.types.Type;
 import IR.types.VoidType;
 
 import java.util.ArrayList;

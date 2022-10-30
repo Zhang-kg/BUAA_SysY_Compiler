@@ -1,5 +1,6 @@
 package IR.SymbolTableForIR;
 
+import IR.Values.InitValue;
 import IR.Values.Value;
 import IR.types.Type;
 
@@ -9,6 +10,7 @@ public class SymbolForIR extends SymbolRecordForIR {
     private Type type;
     private Value value;
     private boolean isConstant;
+    private InitValue constValue;
 
     public SymbolForIR() {
 
@@ -52,5 +54,13 @@ public class SymbolForIR extends SymbolRecordForIR {
 
     public boolean isConstant() {
         return isConstant;
+    }
+
+    public void setConstValue(InitValue constValue) {
+        this.constValue = constValue;
+    }
+
+    public InitValue getConstValue() {
+        return constValue;
     }
 }

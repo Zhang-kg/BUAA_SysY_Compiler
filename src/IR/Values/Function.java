@@ -1,8 +1,6 @@
 package IR.Values;
 
-import IR.types.FunctionType;
 import IR.types.Type;
-import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.util.ArrayList;
 

@@ -16,24 +16,47 @@ import IR.types.*;
 import TokenDefines.Token;
 import TokenDefines.TokenType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 public class GenerateModule {
     private SymbolTableForIR rootTable;
-    private LLVMSymbolTable llvmSymbolTable;
+//    private LLVMSymbolTable llvmSymbolTable;
     private ArrayList<Use> useArrayList;
     private BasicBlock currentBasicBlock = null;
     private Function currentFunction = null;
     private HashMap<String, Function> declareFunctions = null;
-    private ArrayList<Value> globalVariables = new ArrayList<>();
+    private ArrayList<SymbolForIR> globalVariables = new ArrayList<>();
     private ArrayList<ConstantString> globalString = new ArrayList<>();
+    private TreeMap<String, Integer> globalIdentChangeTable  = new TreeMap<>();
+    private HashSet<String> globalIdentSet = new HashSet<>();
+    private boolean isGlobal = true;
+
+    public String addIdent(String befName) {
+        if (!isGlobal) {
+            if (befName.charAt(0) != '%')
+                befName = "%" + befName;
+        } else {
+            if (befName.charAt(0) != '@')
+                befName = "@" + befName;
+        }
+        String aftName = befName;
+        if (globalIdentChangeTable.containsKey(befName) || globalIdentSet.contains(befName)) {
+            int i = 1;
+            while (globalIdentSet.contains(aftName) || globalIdentChangeTable.containsKey(aftName)) {
+                aftName = befName + i;
+                i++;
+            }
+            globalIdentChangeTable.put(befName, i);
+            globalIdentSet.add(aftName);
+        } else {
+            globalIdentSet.add(befName);
+        }
+        return aftName;
+    }
 
     public GenerateModule() {
         rootTable = new SymbolTableForIR(null, 0);
-        llvmSymbolTable = new LLVMSymbolTable();
+//        llvmSymbolTable = new LLVMSymbolTable();
         useArrayList = new ArrayList<>();
         declareFunctions = new HashMap<>();
         declareFunctions.put("@getint", new Function("@getint", new FunctionType(null, IntType.i32)));
@@ -51,6 +74,7 @@ public class GenerateModule {
     public void parseModule(Token root) {
         ArrayList<Token> sons = root.getSons();
         for (Token son : sons) {
+            isGlobal = true;
             switch (son.getTokenType()) {
                 case Decl:
 //                    System.out.println("parse Decl");
@@ -75,6 +99,7 @@ public class GenerateModule {
             }
         }
         Module.getMyModule().setConstantStrings(globalString);
+        Module.getMyModule().setGlobalVariables(globalVariables);
     }
 
     private void parseDeclForIR(Token decl, SymbolTableForIR currentTable) {
@@ -136,7 +161,7 @@ public class GenerateModule {
                 case IDENFR: {
                     befName = son.getTokenString();
                     constDefSymbol.setName(befName);
-                    aftName = llvmSymbolTable.addIdent(son.getTokenString());
+                    aftName = addIdent(son.getTokenString());
                     constDefSymbol.setAftName(aftName);
                     break;
                 }
@@ -158,11 +183,13 @@ public class GenerateModule {
         if (isVariable) {   // 变量
             constDefSymbol.setType(type);
             constDefSymbol.setValue(new Value(new PointerType(type), aftName)); // this is pointer
-            new AllocaInst(currentBasicBlock, aftName, true, type);
-            if (isInitial) {    // 赋初值，常量一定有
+            constDefSymbol.setConstValue(initValue);
+            if (!isGlobal) {
+                new AllocaInst(currentBasicBlock, aftName, true, type);
                 new StoreInst(currentBasicBlock, constDefSymbol.getValue(), initValue.getValue());
+            } else {
+                globalVariables.add(constDefSymbol);
             }
-
         } else {    // 数组
             Type finalArrayType = IntType.i32;
             for (int i = dims.size() - 1; i >= 0; i--) {
@@ -242,7 +269,7 @@ public class GenerateModule {
                 case IDENFR: {
                     befName = son.getTokenString();
                     varDefSymbol.setName(befName);
-                    aftName = llvmSymbolTable.addIdent(befName);
+                    aftName = addIdent(befName);
                     varDefSymbol.setAftName(aftName);
                     break;
                 }
@@ -264,9 +291,18 @@ public class GenerateModule {
         if (isVariable) {
             varDefSymbol.setType(type);
             varDefSymbol.setValue(new Value(new PointerType(type), aftName));
-            new AllocaInst(currentBasicBlock, aftName, false, type);
-            if (isInitial) {
-                new StoreInst(currentBasicBlock, varDefSymbol.getValue(), initValue.getValue());
+            if (!isGlobal) {
+                new AllocaInst(currentBasicBlock, aftName, false, type);
+                if (isInitial) {
+                    new StoreInst(currentBasicBlock, varDefSymbol.getValue(), initValue.getValue());
+                }
+            } else {    // 如果是全局的变量
+                globalVariables.add(varDefSymbol);
+                if (!isInitial) {   // 如果没赋初始值
+                    // 默认赋成0
+                    initValue = new InitValue(ConstantInteger.zero);
+                }
+                varDefSymbol.setConstValue(initValue);
             }
             currentTable.addItem(varDefSymbol);
         } else {
@@ -338,13 +374,14 @@ public class GenerateModule {
                 }
                 case IDENFR: {
                     befFuncName = son.getTokenString();
-                    aftFuncName = llvmSymbolTable.addIdent(befFuncName);
+                    aftFuncName = addIdent(befFuncName);
                     function.setName(aftFuncName);
                     functionSymbol.setName(befFuncName);
                     functionSymbol.setAftName(aftFuncName);
                     break;
                 }
                 case FuncFParams: {
+                    isGlobal = false;
                     sonTable = new SymbolTableForIR(currentTable, currentTable.getIndex());
                     befBasicBlock = currentBasicBlock;
                     currentBasicBlock = function.getBasicBlocks().get(0);
@@ -354,9 +391,11 @@ public class GenerateModule {
                     ArrayList<Type> argumentTypes = currentFunction.getArgumentsType();
                     functionType.setArgumentsType(argumentTypes);
                     currentBasicBlock = befBasicBlock;
+                    isGlobal = true;
                     break;
                 }
                 case Block: {
+                    isGlobal = false;
                     if (sonTable == null) {
                         sonTable = new SymbolTableForIR(currentTable, currentTable.getIndex());
                     }
@@ -364,6 +403,7 @@ public class GenerateModule {
                     currentBasicBlock = function.getBasicBlocks().get(0);
                     parseBlockForIR(son, sonTable);
                     currentBasicBlock = befBasicBlock;
+                    isGlobal = true;
                     break;
                 }
             }
@@ -393,11 +433,13 @@ public class GenerateModule {
         currentFunction = mainFunction;
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.Block) {
+                isGlobal = false;
                 BasicBlock befBasicBlock = currentBasicBlock;
                 currentBasicBlock = mainFunction.getBasicBlocks().get(0);
                 sonTable = new SymbolTableForIR(currentTable, currentTable.getIndex());
                 parseBlockForIR(son, sonTable);
                 currentBasicBlock = befBasicBlock;
+                isGlobal = true;
             }
         }
         currentFunction = befFunction;
@@ -449,7 +491,7 @@ public class GenerateModule {
                 }
                 case IDENFR: {
                     befName = son.getTokenString();
-                    aftName = llvmSymbolTable.addIdent(befName);
+                    aftName = addIdent(befName);
                     paramSymbol.setName(befName);
                     break;
 //                    paramSymbol.setAftName(aftName);
@@ -463,7 +505,7 @@ public class GenerateModule {
             }
         }
         assert aftName != null && type != null;
-        String aftAftName = llvmSymbolTable.addIdent(aftName);
+        String aftAftName = addIdent(aftName);
         // * 这个argument是返回的argument，其name应该是aftName，用于函数
         // * 定义是括号中的声明
         Value argument = new Value(null, aftName);
@@ -773,11 +815,17 @@ public class GenerateModule {
         ArrayList<Value> expValues = new ArrayList<>();
         Value identValue = null;
         boolean isVariable = true;
+        boolean isConstant = false;
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.IDENFR) {
                 String ident = son.getTokenString();
                 SymbolForIR identSymbol = currentTable.findIdentInAllTable(ident);
-                identValue = identSymbol.getValue();
+                if (identSymbol.isConstant()) { // ? 常数
+                    isConstant = true;
+                    identValue = identSymbol.getConstValue();
+                } else {
+                    identValue = identSymbol.getValue();
+                }
             } else if (son.getTokenType() == TokenType.Exp) {
                 isVariable = false;
                 expValues.add(parseExpForIR(son, currentTable));
@@ -795,11 +843,15 @@ public class GenerateModule {
                 assert gepInst != null;
                 return new LoadInst(currentBasicBlock, gepInst);
             }
-        } else {
+        } else {    // * 是变量
             if (left) {
                 return identValue;
             } else {
                 assert identValue != null;
+                if (isConstant) {
+                    assert ((InitValue)identValue).getValue() instanceof ConstantInteger;
+                    return ((InitValue)identValue).getValue();
+                }
                 return new LoadInst(currentBasicBlock, identValue);
             }
         }
@@ -898,6 +950,45 @@ public class GenerateModule {
         return exps;
     }
 
+    private Value binaryHelper(BasicBlock basicBlock,
+                               InstructionType instructionType,
+                               Value value1, Value value2) {
+        if (value1.getType() != IntType.i32) {
+            value1 = new ZextInst(basicBlock, value1, IntType.i32);
+        }
+        if (value2.getType() != IntType.i32) {
+            value2 = new ZextInst(basicBlock, value2, IntType.i32);
+        }
+        if (value1 instanceof ConstantInteger && value2 instanceof ConstantInteger) {
+            int ans = 0;
+            switch (instructionType) {
+                case ADD: {
+                    ans = ((ConstantInteger) value1).getValue() + ((ConstantInteger) value2).getValue();
+                    break;
+                }
+                case SUB: {
+                    ans = ((ConstantInteger) value1).getValue() - ((ConstantInteger) value2).getValue();
+                    break;
+                }
+                case MUL: {
+                    ans = ((ConstantInteger) value1).getValue() * ((ConstantInteger) value2).getValue();
+                    break;
+                }
+                case DIV: {
+                    ans = ((ConstantInteger) value1).getValue() / ((ConstantInteger) value2).getValue();
+                    break;
+                }
+                case SREM: {
+                    ans = ((ConstantInteger) value1).getValue() % ((ConstantInteger) value2).getValue();
+                    break;
+                }
+            }
+            return new ConstantInteger(IntType.i32, String.valueOf(ans), ans);
+        } else {
+            return new BinaryOperator(basicBlock, instructionType, value1, value2);
+        }
+    }
+
     private Value parseMulExpForIR(Token mulExp, SymbolTableForIR currentTable) {
         ArrayList<Token> sons = mulExp.getSons();
         Value lastValue = null;
@@ -910,11 +1001,14 @@ public class GenerateModule {
                 }
                 Value value = parseUnaryExpForIR(son, currentTable);
                 if (op.equals("*")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.MUL, lastValue, value);
+//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.MUL, lastValue, value);
+                    lastValue = binaryHelper(currentBasicBlock, InstructionType.MUL, lastValue, value);
                 } else if (op.equals("/")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.DIV, lastValue, value);
+//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.DIV, lastValue, value);
+                    lastValue = binaryHelper(currentBasicBlock, InstructionType.DIV, lastValue, value);
                 } else if (op.equals("%")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SREM, lastValue, value);
+//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SREM, lastValue, value);
+                    lastValue = binaryHelper(currentBasicBlock, InstructionType.SREM, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.MULT) {
                 op = "*";
@@ -939,9 +1033,11 @@ public class GenerateModule {
                 }
                 Value value = parseMulExpForIR(son, currentTable);
                 if (op.equals("+")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.ADD, lastValue, value);
+//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.ADD, lastValue, value);
+                    lastValue = binaryHelper(currentBasicBlock, InstructionType.ADD, lastValue, value);
                 } else if (op.equals("-")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SUB, lastValue, value);
+//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SUB, lastValue, value);
+                    lastValue = binaryHelper(currentBasicBlock, InstructionType.SUB, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.PLUS) {
                 op = "+";

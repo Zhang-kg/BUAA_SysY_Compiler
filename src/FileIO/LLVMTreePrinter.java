@@ -1,8 +1,9 @@
 package FileIO;
 
 import IR.Module;
+import IR.SymbolTableForIR.SymbolForIR;
 import IR.Values.BasicBlock;
-import IR.Values.ConstantIR.Constant;
+import IR.Values.ConstantIR.ConstantInteger;
 import IR.Values.ConstantIR.ConstantString;
 import IR.Values.Function;
 import IR.Values.InstructionIR.Instruction;
@@ -26,6 +27,7 @@ public class LLVMTreePrinter {
         filePrinter.outPrintlnLLVM("declare void @putch(i32)");
         filePrinter.outPrintlnLLVM("declare void @putstr(i8*)");
         printGlobalStrings(module.getConstantStrings());
+        printGlobalVariables(module.getGlobalVariables());
         for (Function function : module.getFunctions()) {
             printFunctions(function);
         }
@@ -79,6 +81,24 @@ public class LLVMTreePrinter {
                             len + " x i8] c\"" +
                     string.getString().replace("\\n", "\\0a") + "\\00\""
             );
+        }
+    }
+
+    private void printGlobalVariables(ArrayList<SymbolForIR> globalVariables) {
+        for (SymbolForIR gb : globalVariables) {
+            if (gb.isConstant()) {
+                filePrinter.outPrintlnLLVM(
+                        gb.getAftName() + " = constant " +
+                                gb.getConstValue().getType() + " " +
+                                ((ConstantInteger)gb.getConstValue().getValue()).getValue()
+                );
+            } else {
+                filePrinter.outPrintlnLLVM(
+                        gb.getAftName() + " = global " +
+                                gb.getConstValue().getType() + " " +
+                                ((ConstantInteger)gb.getConstValue().getValue()).getValue()
+                );
+            }
         }
     }
 }
