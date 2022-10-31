@@ -9,7 +9,8 @@ public class FilePrinter {
     private static final FilePrinter FILE_PRINTER = new FilePrinter();
     
     private FilePrinter(){
-        File outFile = new File("./llvm_ir.txt");
+        File outFile = new File("./mips.txt");
+//        File outFile = new File("./llvm_ir.txt");
         try {
             out = new PrintWriter(outFile);
         } catch (FileNotFoundException e) {
@@ -35,6 +36,10 @@ public class FilePrinter {
     }
 
     public void outPrintlnLLVM(String line) {
+//        out.println(line);
+    }
+
+    public void outPrintlnMIPS(String line) {
         out.println(line);
     }
     

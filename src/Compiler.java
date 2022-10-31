@@ -1,3 +1,4 @@
+import BackEnd.GenerateMIPS;
 import ErrorDetect.ErrorDetection;
 import FileIO.BasicScanner;
 import FileIO.FilePrinter;
@@ -65,6 +66,7 @@ public class Compiler {
         GenerateModule generateModule = new GenerateModule();
         generateModule.parseModule(root);
         LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
+        new GenerateMIPS();
         filePrinter.closeOut();
     }
 }

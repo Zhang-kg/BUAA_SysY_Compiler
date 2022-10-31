@@ -34,4 +34,8 @@ public class RetInst extends TerminatorInst {
             return "ret void";
         }
     }
+
+    public boolean isExpReturn() {
+        return expReturn;
+    }
 }

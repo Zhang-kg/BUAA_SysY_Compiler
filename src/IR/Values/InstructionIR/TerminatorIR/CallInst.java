@@ -47,12 +47,23 @@ public class CallInst extends TerminatorInst {
         }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < arguments.size(); i++) {
-            sb.append(((FunctionType)function.getType()).getArgumentsType().get(i)).append(" ").append(arguments.get(i).getName());
+            sb.append(
+                    ((FunctionType)function.getType()).getArgumentsType().get(i)).
+                    append(" ").
+                    append(arguments.get(i).getName());
             if (i != arguments.size() - 1) {
                 sb.append(", ");
             }
         }
         argumentsCache = sb.toString();
         return argumentsCache;
+    }
+
+    public ArrayList<Value> getArguments() {
+        return arguments;
+    }
+
+    public Function getFunction() {
+        return function;
     }
 }
