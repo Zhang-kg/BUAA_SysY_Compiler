@@ -50,7 +50,7 @@ public class BasicBlock extends Value {
         }
         InstructionType instructionType = instructions.get(instructions.size() - 1).getInstructionType();
         return instructionType == InstructionType.BR ||
-                instructionType == InstructionType.CALL ||
+//                instructionType == InstructionType.CALL ||
                 instructionType == InstructionType.RET;
     }
 }

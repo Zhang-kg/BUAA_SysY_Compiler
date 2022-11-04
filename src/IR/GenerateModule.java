@@ -21,7 +21,6 @@ import java.util.*;
 // * FINISH WEEK TEST
 public class GenerateModule {
     private SymbolTableForIR rootTable;
-//    private LLVMSymbolTable llvmSymbolTable;
     private ArrayList<Use> useArrayList;
     private BasicBlock currentBasicBlock = null;
     private Function currentFunction = null;
@@ -31,6 +30,9 @@ public class GenerateModule {
     private TreeMap<String, Integer> globalIdentChangeTable  = new TreeMap<>();
     private HashSet<String> globalIdentSet = new HashSet<>();
     private boolean isGlobal = true;
+    private boolean inWhile = false;
+    private BasicBlock whileCondBasicBlock = null;
+    private BasicBlock whilePostBasicBlock = null;
 
     public String addIdent(String befName) {
         if (!isGlobal) {
@@ -57,7 +59,6 @@ public class GenerateModule {
 
     public GenerateModule() {
         rootTable = new SymbolTableForIR(null, 0);
-//        llvmSymbolTable = new LLVMSymbolTable();
         useArrayList = new ArrayList<>();
         declareFunctions = new HashMap<>();
         declareFunctions.put("@getint", new Function("@getint", new FunctionType(null, IntType.i32)));
@@ -78,23 +79,13 @@ public class GenerateModule {
             isGlobal = true;
             switch (son.getTokenType()) {
                 case Decl:
-//                    System.out.println("parse Decl");
                     parseDeclForIR(son, rootTable);
                     break;
                 case FuncDef:
-//                    System.out.println("parse funcDef");
                     parseFuncDefForIR(son, rootTable);
                     break;
                 case MainFuncDef: {
-//                    System.out.println("parse mainFuncDef");
-//                    Function mainFunction = new Function("MAIN_FUNC", new FunctionType(null, null));
-//                    currentFunction = mainFunction;
-//                    Module.getMyModule().addFunction(mainFunction);
-//                    currentBasicBlock = mainFunction.getBasicBlocks().get(0);
                     parseMainFuncDefForIR(son, rootTable);
-//                    currentFunction = null;
-//                    currentBasicBlock = null;
-                    // set main func return type;
                     break;
                 }
             }
@@ -230,7 +221,6 @@ public class GenerateModule {
             switch (son.getTokenType()) {
                 case ConstExp: {
                     constantInteger = parseConstExpForIR(son, currentTable);
-//                    assert constantInteger != null;
                     constInitValue = new InitValue(constantInteger);
                     break;
                 }
@@ -364,7 +354,7 @@ public class GenerateModule {
         return initValue;
     }
 
-    private Type parseFuncDefForIR(Token funcDef, SymbolTableForIR currentTable) {
+    private void parseFuncDefForIR(Token funcDef, SymbolTableForIR currentTable) {
         ArrayList<Token> sons = funcDef.getSons();
         Type retType = null;
         String befFuncName = null, aftFuncName = null;
@@ -408,6 +398,12 @@ public class GenerateModule {
                     break;
                 }
                 case Block: {
+                    function.setType(functionType);
+                    functionSymbol.setType(functionType);
+                    functionSymbol.setValue(function);
+                    functionSymbol.setConstant(false);
+                    Module.getMyModule().addFunction(function); // add Function to current Module
+                    currentTable.addItem(functionSymbol);
                     isGlobal = false;
                     if (sonTable == null) {
                         sonTable = new SymbolTableForIR(currentTable, currentTable.getIndex());
@@ -421,16 +417,10 @@ public class GenerateModule {
                 }
             }
         }
-        function.setType(functionType);
-        functionSymbol.setType(functionType);
-        functionSymbol.setValue(function);
-        functionSymbol.setConstant(false);
-        Module.getMyModule().addFunction(function); // add Function to current Module
-        currentTable.addItem(functionSymbol);
+
         // * 将currentFunction改回原来的Function
         checkBasicBlockTerminate(currentFunction, functionType.getReturnType());
         currentFunction = befFunction;
-        return null;
     }
 
     private void parseMainFuncDefForIR(Token mainFuncDef, SymbolTableForIR currentTable) {
@@ -440,7 +430,6 @@ public class GenerateModule {
          */
         SymbolTableForIR sonTable;
         ArrayList<Token> sons = mainFuncDef.getSons();
-//        Function mainFunction = new Function(null, null);
         Function mainFunction = new Function("@main", new FunctionType(new ArrayList<>(), IntType.i32));
         Module.getMyModule().addFunction(mainFunction);
         Function befFunction = currentFunction;
@@ -509,7 +498,6 @@ public class GenerateModule {
                     aftName = addIdent(befName);
                     paramSymbol.setName(befName);
                     break;
-//                    paramSymbol.setAftName(aftName);
                 }
                 case ConstExp: {
                     isVariable = false;
@@ -568,12 +556,10 @@ public class GenerateModule {
         for (Token son : sons) {
             switch (son.getTokenType()) {
                 case Decl: {
-//                    System.out.println("Decl");
                     parseDeclForIR(son, currentTable);
                     break;
                 }
                 case Stmt: {
-//                    System.out.println("Stmt");
                     parseStmtForIR(son, currentTable);
                     break;
                 }
@@ -621,103 +607,103 @@ public class GenerateModule {
             }
             case IFTK: {
                 boolean hasElse = false;
-                BasicBlock trueBasicBlock = new BasicBlock();   // * True Stmt
-                BasicBlock elseBasicBlock = new BasicBlock();   // * Else Stmt
-                BasicBlock postIfBasicBlock = new BasicBlock(); // * Aft if Block
-                BasicBlock befBasicBlock = currentBasicBlock;
-                Value cond = null;
+                Token cond = null;
+                Token stmt1 = null;
+                Token stmt2 = null;
                 for (Token son : sons) {
-                    switch (son.getTokenType()) {
-                        case Cond: {
-                            cond = parseCondForIR(son, currentTable);
-                            break;
-                        }
-                        case ELSETK: {
-                            hasElse = true;
-                            break;
-                        }
-                        case Stmt: {
-                            if (!hasElse) {
-                                currentBasicBlock = trueBasicBlock;
-                                parseStmtForIR(son, currentTable);
-                            } else {
-                                currentBasicBlock = postIfBasicBlock;
-                                parseStmtForIR(son, currentTable);
-                            }
-                            break;
-                        }
+                    if (son.getTokenType() == TokenType.Stmt) {
+                        if (stmt1 == null) stmt1 = son;
+                        else stmt2 = son;
+                    } else if (son.getTokenType() == TokenType.ELSETK) {
+                        hasElse = true;
+                    } else if (son.getTokenType() == TokenType.Cond) {
+                        cond = son;
                     }
                 }
+                BasicBlock trueBasicBlock = new BasicBlock();   // * True Stmt
+                BasicBlock elseBasicBlock = null;
+                if (hasElse)
+                    elseBasicBlock = new BasicBlock();          // * Else Stmt
+                BasicBlock postIfBasicBlock = new BasicBlock(); // * Aft if Block
+                BasicBlock befBasicBlock = currentBasicBlock;
                 if (hasElse) {
-                    // * add Basic && set Label
+                    parseCondForIR(cond, currentTable, trueBasicBlock, elseBasicBlock);
+                    currentBasicBlock = trueBasicBlock;
                     currentFunction.addBasicBlock(trueBasicBlock);
+                    parseStmtForIR(stmt1, currentTable);
+                    if (!currentBasicBlock.isTerminated())
+                        new BrInst(currentBasicBlock, postIfBasicBlock.getLabel());
+                    currentBasicBlock = elseBasicBlock;
                     currentFunction.addBasicBlock(elseBasicBlock);
+                    parseStmtForIR(stmt2, currentTable);
+                    if (!currentBasicBlock.isTerminated())
+                        new BrInst(currentBasicBlock, postIfBasicBlock.getLabel());
+                    currentBasicBlock = postIfBasicBlock;
                     currentFunction.addBasicBlock(postIfBasicBlock);
-                    currentBasicBlock = postIfBasicBlock;
-//                    String labelName = LabelType.getNewLabelName();
-//                    trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-//                    labelName = LabelType.getNewLabelName();
-//                    elseBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-//                    labelName = LabelType.getNewLabelName();
-//                    postIfBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                    new BrInst(befBasicBlock, cond, trueBasicBlock.getLabel(), elseBasicBlock.getLabel());
-                    new BrInst(trueBasicBlock, postIfBasicBlock.getLabel());
-                    new BrInst(elseBasicBlock, postIfBasicBlock.getLabel());
-                    currentBasicBlock = postIfBasicBlock;
                 } else {
+                    parseCondForIR(cond, currentTable, trueBasicBlock, postIfBasicBlock);
+                    currentBasicBlock = trueBasicBlock;
                     currentFunction.addBasicBlock(trueBasicBlock);
-                    currentFunction.addBasicBlock(postIfBasicBlock);
-//                    String labelName = LabelType.getNewLabelName();
-//                    trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-//                    labelName = LabelType.getNewLabelName();
-//                    postIfBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                    new BrInst(befBasicBlock, cond, trueBasicBlock.getLabel(), postIfBasicBlock.getLabel());
-                    new BrInst(trueBasicBlock, postIfBasicBlock.getLabel());
+                    parseStmtForIR(stmt1, currentTable);
+                    if (!currentBasicBlock.isTerminated())
+                        new BrInst(currentBasicBlock, postIfBasicBlock.getLabel());
                     currentBasicBlock = postIfBasicBlock;
+                    currentFunction.addBasicBlock(postIfBasicBlock);
                 }
                 break;
             }
             case WHILETK: {
-                BasicBlock condBasicBlock = new BasicBlock();
-                BasicBlock trueBasicBlock = new BasicBlock();
-                BasicBlock postWhileBasicBlock = new BasicBlock();
-                BasicBlock befBasicBlock = currentBasicBlock;
-                Value cond = null;
+                boolean befInWhile = inWhile;
+                BasicBlock befWhileCondBasicBlock = whileCondBasicBlock;
+                BasicBlock befWhilePostBasicBlock = whilePostBasicBlock;
+                inWhile = true;
+                Token cond = null;
+                Token stmt1 = null;
                 for (Token son : sons) {
-                    switch (son.getTokenType()) {
-                        case Cond: {
-                            currentBasicBlock = condBasicBlock;
-                            cond = parseCondForIR(son, currentTable);
-                            break;
-                        }
-                        case Stmt: {
-                            currentBasicBlock = trueBasicBlock;
-                            parseStmtForIR(son, currentTable);
-                            break;
-                        }
+                    if (son.getTokenType() == TokenType.Cond) {
+                        cond = son;
+                    } else if (son.getTokenType() == TokenType.Stmt) {
+                        stmt1 = son;
                     }
                 }
-                currentBasicBlock = postWhileBasicBlock;
+                // * 定义BasicBlock并设置WhileBasicBlock
+                BasicBlock condBasicBlock = new BasicBlock();
+                whileCondBasicBlock = condBasicBlock;
+                BasicBlock trueBasicBlock = new BasicBlock();
+                BasicBlock postBasicBlock = new BasicBlock();
+                whilePostBasicBlock = postBasicBlock;
+
+                if (!currentBasicBlock.isTerminated())
+                    new BrInst(currentBasicBlock, condBasicBlock.getLabel());
+                currentBasicBlock = condBasicBlock;
                 currentFunction.addBasicBlock(condBasicBlock);
+                parseCondForIR(cond, currentTable, trueBasicBlock, postBasicBlock);
+                currentBasicBlock = trueBasicBlock;
                 currentFunction.addBasicBlock(trueBasicBlock);
-                currentFunction.addBasicBlock(postWhileBasicBlock);
-//                String labelName = LabelType.getNewLabelName();
-//                condBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-//                labelName = LabelType.getNewLabelName();
-//                trueBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-//                labelName = LabelType.getNewLabelName();
-//                postWhileBasicBlock.setLabel(new Value(LabelType.getLabelType(), labelName));
-                new BrInst(befBasicBlock, condBasicBlock.getLabel());
-                new BrInst(condBasicBlock, cond, trueBasicBlock.getLabel(), postWhileBasicBlock.getLabel());
-                new BrInst(trueBasicBlock, condBasicBlock.getLabel());
+                parseStmtForIR(stmt1, currentTable);
+                if (!currentBasicBlock.isTerminated())
+                    new BrInst(currentBasicBlock, condBasicBlock.getLabel());
+                currentBasicBlock = postBasicBlock;
+                currentFunction.addBasicBlock(postBasicBlock);
+                inWhile = befInWhile;
+                whileCondBasicBlock = befWhileCondBasicBlock;
+                whilePostBasicBlock = befWhilePostBasicBlock;
                 break;
             }
             case BREAKTK: {
-//                System.out.println("didn't parse Break");
+                if (!inWhile) {
+                    System.out.println("Wrong break appear not in while");
+                }
+                if (!currentBasicBlock.isTerminated())
+                    new BrInst(currentBasicBlock, whilePostBasicBlock.getLabel());
                 break;
             }
             case CONTINUETK: {
-//                System.out.println("didn't parse continue");
+                if (!inWhile) {
+                    System.out.println("Wrong continue appear not in while");
+                }
+                if (!currentBasicBlock.isTerminated())
+                    new BrInst(currentBasicBlock, whileCondBasicBlock.getLabel());
                 break;
             }
             case RETURNTK: {
@@ -760,7 +746,6 @@ public class GenerateModule {
                         if (string.charAt(i) == '\\')
                             len--;
                     }
-//                    ConstantString constantString = new ConstantString(new PointerType(IntType.i8), string);
                     ConstantString constantString = new ConstantString(new PointerType(new ArrayType(IntType.i8, len)), string);
                     stringValues.add(constantString);
                     globalString.add(constantString);   // ? 全局信息中添加符号串信息
@@ -818,15 +803,14 @@ public class GenerateModule {
         return null;
     }
 
-    private Value parseCondForIR(Token cond, SymbolTableForIR currentTable) {
+    private void parseCondForIR(Token cond, SymbolTableForIR currentTable,
+                                 BasicBlock trueBasicBlock, BasicBlock falseBasicBlock) {
         ArrayList<Token> sons = cond.getSons();
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.LOrExp) {
-                return parseLOrExpForIR(son, currentTable);
+                parseLOrExpForIR(son, currentTable, trueBasicBlock, falseBasicBlock);
             }
         }
-        System.out.println("Wrong parse LOrExp for IR");
-        return null;
     }
 
     private Value parseLValForIR(Token lVal, SymbolTableForIR currentTable, boolean left) {
@@ -905,14 +889,14 @@ public class GenerateModule {
                 return parsePrimaryExpForIR(sons.get(0), currentTable);
             }
             case IDENFR: {
-                SymbolForIR function = currentTable.findIdentInAllTable(sons.get(0).getTokenString());
+                SymbolForIR functionSymbol = currentTable.findIdentInAllTable(sons.get(0).getTokenString());
                 ArrayList<Value> params = new ArrayList<>();
                 for (Token son : sons) {
                     if (son.getTokenType() == TokenType.FuncRParams) {
                         params = parseFuncRParamsForIR(son, currentTable);
                     }
                 }
-                return new CallInst(currentBasicBlock, (Function) function.getValue(), params);
+                return new CallInst(currentBasicBlock, (Function) functionSymbol.getValue(), params);
             }
             case UnaryOp: {
                 InstructionType instructionType = parseUnaryOpForIR(sons.get(0));
@@ -1020,13 +1004,10 @@ public class GenerateModule {
                 }
                 Value value = parseUnaryExpForIR(son, currentTable);
                 if (op.equals("*")) {
-//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.MUL, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.MUL, lastValue, value);
                 } else if (op.equals("/")) {
-//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SDIV, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.SDIV, lastValue, value);
                 } else if (op.equals("%")) {
-//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SREM, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.SREM, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.MULT) {
@@ -1052,10 +1033,8 @@ public class GenerateModule {
                 }
                 Value value = parseMulExpForIR(son, currentTable);
                 if (op.equals("+")) {
-//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.ADD, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.ADD, lastValue, value);
                 } else if (op.equals("-")) {
-//                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.SUB, lastValue, value);
                     lastValue = binaryHelper(currentBasicBlock, InstructionType.SUB, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.PLUS) {
@@ -1065,6 +1044,23 @@ public class GenerateModule {
             }
         }
         return lastValue;
+    }
+
+    private Value compareHelper(BasicBlock basicBlock, InstructionType instructionType, Value value1, Value value2) {
+        if (value1.getType() == IntType.i1) {
+            value1 = new ZextInst(basicBlock, value1, IntType.i32);
+        }
+        if (value2.getType() == IntType.i1) {
+            value2 = new ZextInst(basicBlock, value2, IntType.i32);
+        }
+        if (instructionType == InstructionType.SLT || instructionType == InstructionType.SGT ||
+            instructionType == InstructionType.SLE || instructionType == InstructionType.SGE ||
+            instructionType == InstructionType.EQ || instructionType == InstructionType.NE) {
+            return new IcmpInst(currentBasicBlock, instructionType, value1, value2);
+        } else {
+            System.out.println("compareHelper Error");
+            return null;
+        }
     }
 
     private Value parseRelExpForIR(Token relExp, SymbolTableForIR currentTable) {
@@ -1079,13 +1075,13 @@ public class GenerateModule {
                 }
                 Value value = parseAddExpForIR(son, currentTable);
                 if (op.equals("<")) {
-                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SLT, lastValue, value);
+                    lastValue = compareHelper(currentBasicBlock, InstructionType.SLT, lastValue, value);
                 } else if (op.equals(">")) {
-                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SGT, lastValue, value);
+                    lastValue = compareHelper(currentBasicBlock, InstructionType.SGT, lastValue, value);
                 } else if (op.equals("<=")) {
-                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SLE, lastValue, value);
+                    lastValue = compareHelper(currentBasicBlock, InstructionType.SLE, lastValue, value);
                 } else if (op.equals(">=")) {
-                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.SGE, lastValue, value);
+                    lastValue = compareHelper(currentBasicBlock, InstructionType.SGE, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.LSS) {
                 op = "<";
@@ -1112,9 +1108,9 @@ public class GenerateModule {
                 }
                 Value value = parseRelExpForIR(son, currentTable);
                 if (op.equals("==")) {
-                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.EQ, lastValue, value);
+                    lastValue = compareHelper(currentBasicBlock, InstructionType.EQ, lastValue, value);
                 } else if (op.equals("!=")) {
-                    lastValue = new IcmpInst(currentBasicBlock, InstructionType.NE, lastValue, value);
+                    lastValue = compareHelper(currentBasicBlock, InstructionType.NE, lastValue, value);
                 }
             } else if (son.getTokenType() == TokenType.EQL) {
                 op = "==";
@@ -1125,46 +1121,58 @@ public class GenerateModule {
         return lastValue;
     }
 
-    private Value parseLAndExpForIR(Token lAndExp, SymbolTableForIR currentTable) {
+    private void parseLAndExpForIR(Token lAndExp, SymbolTableForIR currentTable,
+                                    BasicBlock trueBasicBlock, BasicBlock falseBasicBlock) {
         ArrayList<Token> sons = lAndExp.getSons();
-        Value lastValue = null;
-        String op = "";
+        ArrayList<Token> eqExps = new ArrayList<>();
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.EqExp) {
-                if (lastValue == null) {
-                    lastValue = parseEqExpForIR(son, currentTable);
-                    continue;
-                }
-                Value value = parseEqExpForIR(son, currentTable);
-                if (op.equals("&&")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.AND, lastValue, value);
-                }
-            } else if (son.getTokenType() == TokenType.AND) {
-                op = "&&";
+                eqExps.add(son);
             }
         }
-        return lastValue;
+        BasicBlock eqBasicBlock;
+        for (int i = 0; i < eqExps.size(); i++) {
+            if (i != eqExps.size() - 1) {
+                eqBasicBlock = new BasicBlock();
+                Value eqExpValue = parseEqExpForIR(eqExps.get(i), currentTable);
+                if (eqExpValue.getType() != IntType.i1) {
+                    eqExpValue = new IcmpInst(currentBasicBlock, InstructionType.NE, eqExpValue, ConstantInteger.zero);
+                }
+                if (!currentBasicBlock.isTerminated())
+                    new BrInst(currentBasicBlock, eqExpValue, eqBasicBlock.getLabel(), falseBasicBlock.getLabel());
+                currentBasicBlock = eqBasicBlock;
+                currentFunction.addBasicBlock(eqBasicBlock);
+            } else {
+                Value eqExpValue = parseEqExpForIR(eqExps.get(i), currentTable);
+                if (eqExpValue.getType() != IntType.i1) {
+                    eqExpValue = new IcmpInst(currentBasicBlock, InstructionType.NE, eqExpValue, ConstantInteger.zero);
+                }
+                if (!currentBasicBlock.isTerminated())
+                    new BrInst(currentBasicBlock, eqExpValue, trueBasicBlock.getLabel(), falseBasicBlock.getLabel());
+            }
+        }
     }
 
-    private Value parseLOrExpForIR(Token lOrExp, SymbolTableForIR currentTable) {
+    private void parseLOrExpForIR(Token lOrExp, SymbolTableForIR currentTable,
+                                   BasicBlock trueBasicBlock, BasicBlock falseBasicBlock) {
         ArrayList<Token> sons = lOrExp.getSons();
-        Value lastValue = null;
-        String op = "";
+        ArrayList<Token> andExps = new ArrayList<>();
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.LAndExp) {
-                if (lastValue == null) {
-                    lastValue = parseLAndExpForIR(son, currentTable);
-                    continue;
-                }
-                Value value = parseLAndExpForIR(son, currentTable);
-                if (op.equals("||")) {
-                    lastValue = new BinaryOperator(currentBasicBlock, InstructionType.OR, lastValue, value);
-                }
-            } else if (son.getTokenType() == TokenType.OR) {
-                op = "||";
+                andExps.add(son);
             }
         }
-        return lastValue;
+        BasicBlock andBasicBlock;
+        for (int i = 0; i < andExps.size(); i++) {
+            if (i != andExps.size() - 1) {
+                andBasicBlock = new BasicBlock();
+                parseLAndExpForIR(andExps.get(i), currentTable, trueBasicBlock, andBasicBlock);
+                currentBasicBlock = andBasicBlock;
+                currentFunction.addBasicBlock(andBasicBlock);
+            } else {
+                parseLAndExpForIR(andExps.get(i), currentTable, trueBasicBlock, falseBasicBlock);
+            }
+        }
     }
 
     private ConstantInteger parseConstExpForIR(Token constExp, SymbolTableForIR currentTable) {

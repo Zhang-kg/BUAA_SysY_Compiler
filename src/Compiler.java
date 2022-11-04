@@ -66,7 +66,7 @@ public class Compiler {
         GenerateModule generateModule = new GenerateModule();
         generateModule.parseModule(root);
         LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
-        new GenerateMIPS();
+//        new GenerateMIPS();
         filePrinter.closeOut();
     }
 }

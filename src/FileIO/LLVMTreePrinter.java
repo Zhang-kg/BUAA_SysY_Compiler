@@ -62,10 +62,10 @@ public class LLVMTreePrinter {
 
     private void printBasicBlock(BasicBlock basicBlock) {
         if (basicBlock.getLabel() != null) {
-            filePrinter.outPrintlnLLVM(basicBlock.getLabel().getName().substring(1) + ":");
+            filePrinter.outPrintlnLLVM("\t" + basicBlock.getLabel().getName().substring(1) + ":");
         }
         for (Instruction instruction : basicBlock.getInstructions()) {
-            filePrinter.outPrintlnLLVM(instruction.toString());
+            filePrinter.outPrintlnLLVM("\t\t" + instruction.toString());
         }
     }
 

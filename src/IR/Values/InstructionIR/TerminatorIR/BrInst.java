@@ -11,6 +11,13 @@ public class BrInst extends TerminatorInst {
     private static int BR_INST_NUM = 0;
     private boolean conditionalBranch;
 
+    /**
+     *
+     * @param fatherBasicBlock
+     * @param condition 跳转条件
+     * @param label1 为True时跳转到本Label
+     * @param label2 为False时跳转到本Label
+     */
     public BrInst(BasicBlock fatherBasicBlock, Value condition, Value label1, Value label2) {
         super(fatherBasicBlock, InstructionType.BR, IntType.i1, allocName());
         conditionalBranch = true;

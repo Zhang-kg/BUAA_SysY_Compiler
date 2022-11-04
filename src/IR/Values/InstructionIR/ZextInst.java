@@ -20,7 +20,7 @@ public class ZextInst extends Instruction {
 
     @Override
     public String toString() {
-        return "zext " +
+        return getName() + " = zext " +
                 getOperands().get(0).getType().toString() + " " + getOperands().get(0).getName() +
                 " to " + targetType.toString();
     }

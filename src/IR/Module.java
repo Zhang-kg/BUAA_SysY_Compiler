@@ -45,6 +45,15 @@ public class Module {
         return functions;
     }
 
+    public Function getFunction(String name) {
+        for (Function function : functions) {
+            if (function.getName().equals(name)) {
+                return function;
+            }
+        }
+        return null;
+    }
+
     public void setConstantStrings(ArrayList<ConstantString> constantStrings) {
         this.constantStrings = constantStrings;
     }
