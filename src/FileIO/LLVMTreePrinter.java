@@ -6,9 +6,12 @@ import IR.Values.BasicBlock;
 import IR.Values.ConstantIR.ConstantInteger;
 import IR.Values.ConstantIR.ConstantString;
 import IR.Values.Function;
+import IR.Values.InitValue;
 import IR.Values.InstructionIR.Instruction;
 import IR.Values.Value;
+import IR.types.ArrayType;
 import IR.types.FunctionType;
+import IR.types.PointerType;
 
 import java.util.ArrayList;
 
@@ -86,19 +89,34 @@ public class LLVMTreePrinter {
 
     private void printGlobalVariables(ArrayList<SymbolForIR> globalVariables) {
         for (SymbolForIR gb : globalVariables) {
-            if (gb.isConstant()) {
-                filePrinter.outPrintlnLLVM(
-                        gb.getAftName() + " = constant " +
-                                gb.getConstValue().getType() + " " +
-                                ((ConstantInteger)gb.getConstValue().getValue()).getValue()
-                );
+            if (gb.getType() instanceof ArrayType) {
+//                System.out.println(1);
+                Value arrayValue = gb.getValue();
+                if (gb.isConstant()) {
+                    filePrinter.outPrintlnLLVM(arrayValue.getName() + " = constant " +
+                            gb.getInitValue().toString());
+                } else {
+                    filePrinter.outPrintlnLLVM(arrayValue.getName() + " = global " +
+                            gb.getInitValue().toString());
+                }
             } else {
-                filePrinter.outPrintlnLLVM(
-                        gb.getAftName() + " = global " +
-                                gb.getConstValue().getType() + " " +
-                                ((ConstantInteger)gb.getConstValue().getValue()).getValue()
-                );
+                if (gb.isConstant()) {
+                    filePrinter.outPrintlnLLVM(
+                            gb.getAftName() + " = constant " +
+                                    gb.getInitValue().getType() + " " +
+                                    ((ConstantInteger)gb.getInitValue().getValue()).getValue()
+                    );
+                } else {
+                    filePrinter.outPrintlnLLVM(
+                            gb.getAftName() + " = global " +
+                                    gb.getInitValue().getType() + " " +
+                                    ((ConstantInteger)gb.getInitValue().getValue()).getValue()
+                    );
+                }
             }
+
         }
     }
+
+
 }

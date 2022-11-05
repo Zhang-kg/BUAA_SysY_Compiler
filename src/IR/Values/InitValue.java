@@ -33,4 +33,38 @@ public class InitValue extends Value {
             return new ArrayType(midArrayInitVal.get(0).getType(), midArrayInitVal.size());
         }
     }
+
+    public boolean isArray() {
+        return isArray;
+    }
+
+    public ArrayList<InitValue> getMidArrayInitVal() {
+        return midArrayInitVal;
+    }
+
+    @Override
+    public String toString() {
+        if (isArray) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getTypeString()).append(" [");
+            for (int i = 0; i < midArrayInitVal.size(); i++) {
+                sb.append(midArrayInitVal.get(i).toString());
+                if (i != midArrayInitVal.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append("]");
+            return sb.toString();
+        } else {
+            return value.getType().toString() + " " + value.getName();
+        }
+    }
+
+    public String getTypeString() {
+        if (isArray) {
+            return "[" + midArrayInitVal.size() + " x " + midArrayInitVal.get(0).getTypeString() +  "]";
+        } else {
+            return value.getType().toString();
+        }
+    }
 }

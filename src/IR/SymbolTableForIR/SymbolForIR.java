@@ -9,8 +9,9 @@ public class SymbolForIR extends SymbolRecordForIR {
     private String aftName;
     private Type type;
     private Value value;
-    private boolean isConstant;
-    private InitValue constValue;
+    private InitValue initValue;
+    private boolean isConstant = false;
+    private boolean isGlobal = false;
 
     public SymbolForIR() {
 
@@ -56,11 +57,19 @@ public class SymbolForIR extends SymbolRecordForIR {
         return isConstant;
     }
 
-    public void setConstValue(InitValue constValue) {
-        this.constValue = constValue;
+    public boolean isGlobal() {
+        return isGlobal;
     }
 
-    public InitValue getConstValue() {
-        return constValue;
+    public InitValue getInitValue() {
+        return initValue;
+    }
+
+    public void setInitValue(InitValue initValue) {
+        this.initValue = initValue;
+    }
+
+    public void setGlobal(boolean global) {
+        isGlobal = global;
     }
 }

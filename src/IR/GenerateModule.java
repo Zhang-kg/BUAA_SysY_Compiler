@@ -155,7 +155,6 @@ public class GenerateModule {
         ArrayList<Token> sons = constDef.getSons();
         SymbolForIR constDefSymbol = new SymbolForIR();
         boolean isVariable = true;
-        boolean isInitial = false;
         ArrayList<ConstantInteger> dims = new ArrayList<>();
         constDefSymbol.setConstant(true);
         Value pointer;
@@ -177,7 +176,6 @@ public class GenerateModule {
                     break;
                 }
                 case ConstInitVal: {
-                    isInitial = true;
                     initValue = parseConstInitValForIR(son, currentTable);
                     break;
                 }
@@ -187,7 +185,9 @@ public class GenerateModule {
         if (isVariable) {   // 变量
             constDefSymbol.setType(type);
             constDefSymbol.setValue(new Value(new PointerType(type), aftName)); // this is pointer
-            constDefSymbol.setConstValue(initValue);
+            //! constDefSymbol.setConstValue(initValue);
+//            constDefSymbol.setValue(initValue);
+            constDefSymbol.setInitValue(initValue);
             if (!isGlobal) {
                 new AllocaInst(currentBasicBlock, aftName, true, type);
                 new StoreInst(currentBasicBlock, constDefSymbol.getValue(), initValue.getValue());
@@ -202,10 +202,20 @@ public class GenerateModule {
                 finalArrayType = new ArrayType(finalArrayType, dimValuenum);
             }
             constDefSymbol.setType(finalArrayType);
-            constDefSymbol.setValue(new Value(new PointerType(finalArrayType), aftName));
-            new AllocaInst(currentBasicBlock, aftName, true, finalArrayType);
-            if (isInitial) {    // 赋初值，常量一定有
-                // ! 熟悉之后再做一下
+            Value arrayValue;
+            if (isGlobal) {
+                arrayValue = new Value(new PointerType(finalArrayType), aftName);
+                constDefSymbol.setValue(arrayValue);
+                constDefSymbol.setGlobal(true);
+                //! constDefSymbol.setConstValue(initValue);
+                //! constDefSymbol.setGlobalValue(initValue);
+//                constDefSymbol.setValue(initValue);
+                constDefSymbol.setInitValue(initValue);
+                globalVariables.add(constDefSymbol);
+            } else {
+                arrayValue = new AllocaInst(currentBasicBlock, aftName, true, finalArrayType);
+                constDefSymbol.setValue(arrayValue);
+                arrayInit(arrayValue, initValue);
             }
         }
         currentTable.addItem(constDefSymbol);   // * add this to symbol table
@@ -305,23 +315,72 @@ public class GenerateModule {
                     // 默认赋成0
                     initValue = new InitValue(ConstantInteger.zero);
                 }
-                varDefSymbol.setConstValue(initValue);
+                //! varDefSymbol.setConstValue(initValue);
+                varDefSymbol.setInitValue(initValue);
+//                varDefSymbol.setValue(initValue);
             }
             currentTable.addItem(varDefSymbol);
         } else {
             Type finalArrayType = IntType.i32;
+            InitValue zeroInitValue = new InitValue(ConstantInteger.zero);
             for (int i = dims.size() - 1; i >= 0; i--) {
                 ConstantInteger dimValue = dims.get(i);
                 int dimValueNum = dimValue.getValue();
                 finalArrayType = new ArrayType(finalArrayType, dimValueNum);
+                ArrayList<InitValue> initValues = new ArrayList<>();
+                for (int j = 0; j < dimValueNum; j++) {
+                    initValues.add(zeroInitValue);
+                }
+                zeroInitValue = new InitValue(initValues);
             }
             varDefSymbol.setType(finalArrayType);
-            varDefSymbol.setValue(new Value(new PointerType(finalArrayType), aftName));
-            new AllocaInst(currentBasicBlock, aftName, false, finalArrayType);
-            if (isInitial) {
-                // ! 熟悉之后做一下
+            Value arrayValue;
+            if (isGlobal) {
+                arrayValue = new Value(new PointerType(finalArrayType), aftName);
+                varDefSymbol.setValue(arrayValue);
+                globalVariables.add(varDefSymbol);
+//                varDefSymbol.
+                if (isInitial) {
+                    // !varDefSymbol.setGlobalValue(initValue);
+                    varDefSymbol.setInitValue(initValue);
+//                    varDefSymbol.setValue(initValue);
+                } else {
+                    //! varDefSymbol.setGlobalValue(zeroInitValue);
+                    varDefSymbol.setInitValue(zeroInitValue);
+//                    varDefSymbol.setValue(zeroInitValue);
+                }
+            } else {
+                arrayValue = new AllocaInst(currentBasicBlock, aftName, false, finalArrayType);
+                varDefSymbol.setValue(arrayValue);
+                if (isInitial) {
+                    arrayInit(arrayValue, initValue);
+                }
             }
+
+//            if (isInitial) {
+//                // ! 熟悉之后做一下
+//                if (!isGlobal) {
+//                    arrayInit(arrayValue, initValue);
+//                } else {
+//
+//                }
+//            } else {
+//
+//            }
             currentTable.addItem(varDefSymbol);
+        }
+    }
+
+    private void arrayInit(Value arrayValue, InitValue arrayInitValue) {
+        if (arrayInitValue.isArray()) {
+            ArrayList<InitValue> initValues = arrayInitValue.getMidArrayInitVal();
+            for (int i = 0; i < initValues.size(); i++) {
+                Value elementValue = new GEPInst(currentBasicBlock, arrayValue,
+                        new ConstantInteger(IntType.i32, String.valueOf(i), i));
+                arrayInit(elementValue, initValues.get(i));
+            }
+        } else {
+            new StoreInst(currentBasicBlock, arrayValue, arrayInitValue);
         }
     }
 
@@ -819,45 +878,103 @@ public class GenerateModule {
         Value identValue = null;
         boolean isVariable = true;
         boolean isConstant = false;
+        SymbolForIR identSymbol = null;
         for (Token son : sons) {
             if (son.getTokenType() == TokenType.IDENFR) {
                 String ident = son.getTokenString();
-                SymbolForIR identSymbol = currentTable.findIdentInAllTable(ident);
-                if (identSymbol.isConstant()) { // ? 常数
-                    isConstant = true;
-                    identValue = identSymbol.getConstValue();
-                } else {
-                    identValue = identSymbol.getValue();
-                }
+                identSymbol = currentTable.findIdentInAllTable(ident);
+//                if (identSymbol.isConstant()) { // ? 常数
+//                    isConstant = true;
+//                    identValue = identSymbol.getConstValue();
+//                } else {
+//                    identValue = identSymbol.getValue();
+//                }
             } else if (son.getTokenType() == TokenType.Exp) {
                 isVariable = false;
                 expValues.add(parseExpForIR(son, currentTable));
             }
         }
-        if (!isVariable) {
-            Value gepInst = identValue;
-            for (Value expValue : expValues) {
-                assert identValue != null;
-                gepInst = new GEPInst(currentBasicBlock, gepInst, expValue);
-            }
-            if (left) {
-                return gepInst;
-            } else {
-                assert gepInst != null;
-                return new LoadInst(currentBasicBlock, gepInst);
-            }
-        } else {    // * 是变量
-            if (left) {
-                return identValue;
-            } else {
-                assert identValue != null;
-                if (isConstant) {
-                    assert ((InitValue)identValue).getValue() instanceof ConstantInteger;
-                    return ((InitValue)identValue).getValue();
-                }
-                return new LoadInst(currentBasicBlock, identValue);
-            }
+        if (identSymbol.isConstant()) {
+            isConstant = true;
         }
+        identValue = identSymbol.getValue();
+        // * judge if LVal is Variable or Array
+        if (isVariable) {   // * if LVal is Variable
+            if (left) {     // * if Left
+                return identValue;
+            } else {        // * not left
+                if (isConstant) {   // ? if LVal is constant
+                    identValue = identSymbol.getInitValue();
+                    return ((InitValue)identValue).getValue();
+                } else {
+                    return new LoadInst(currentBasicBlock, identValue);
+                }
+            }
+        } else {            // * if LVal is Array
+            if (left) {     // * if Left
+                return parseArrayLVal(identValue, expValues);
+            } else {        // * not Left
+                if (isConstant) {   // ? if LVal is constant
+                    //! identValue = identSymbol.getConstValue();
+                    identValue = identSymbol.getInitValue();
+                    boolean canGetNum = true;
+                    ArrayList<Integer> dims = new ArrayList<>();
+                    for (Value expValue : expValues) {
+                        if (!(expValue instanceof ConstantInteger)) {
+                            canGetNum = false;
+                            break;
+                        } else {
+                            dims.add(((ConstantInteger) expValue).getValue());
+                        }
+                    }
+                    if (canGetNum) {
+                        for (Integer i : dims) {
+                            identValue = ((InitValue)identValue).getMidArrayInitVal().get(i);
+                        }
+                        return identValue;
+                    } else {
+                        return parseArrayLVal(identValue, expValues);
+                    }
+                } else {
+                    Value gepInst = parseArrayLVal(identValue, expValues);
+                    return new LoadInst(currentBasicBlock, gepInst);
+                }
+            }
+
+        }
+//        if (!isVariable) {
+//            Value gepInst = identValue;
+//            for (Value expValue : expValues) {
+//                assert identValue != null;
+//                gepInst = new GEPInst(currentBasicBlock, gepInst, expValue);
+//            }
+//            if (left) {
+//                return gepInst;
+//            } else {
+//                assert gepInst != null;
+//                return new LoadInst(currentBasicBlock, gepInst);
+//            }
+//        } else {    // * 是变量
+//            if (left) {
+//                return identValue;
+//            } else {
+//                assert identValue != null;
+//                if (isConstant) {
+//                    assert ((InitValue)identValue).getValue() instanceof ConstantInteger;
+//                    return ((InitValue)identValue).getValue();
+//                }
+//                return new LoadInst(currentBasicBlock, identValue);
+//            }
+//        }
+    }
+
+    // * 本函数为了简化对于数组使用GEP指令访存
+    private Value parseArrayLVal(Value identValue, ArrayList<Value> expValues) {
+        Value gepInst = identValue;
+        for (Value expValue : expValues) {
+            gepInst = new GEPInst(currentBasicBlock, gepInst, expValue);
+        }
+        return gepInst;
     }
 
     private Value parsePrimaryExpForIR(Token primaryExp, SymbolTableForIR currentTable) {
