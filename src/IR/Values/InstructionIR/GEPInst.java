@@ -11,6 +11,7 @@ public class GEPInst extends Instruction {
     private int num2 = 0;
     private boolean isArray = false;
     private boolean constDim = false;
+    private boolean isSpecial = false;
 
     // * pointer Value type [2 x [3 x i32]]*
     // * pointer Value type get Inner Value Type [2 x [3 x i32]]
@@ -36,27 +37,43 @@ public class GEPInst extends Instruction {
         }
     }
 
+    public GEPInst(BasicBlock fatherBasicBlock, Value pointerValue, Value num2, boolean isSpecial) {
+        super(fatherBasicBlock, InstructionType.GEP,
+                pointerValue.getType(), allocName());
+        this.isSpecial = true;
+        addOperand(pointerValue);
+        addOperand(num2);
+    }
+
     private static String allocName() {
         return "%GEP_NO_" + GEP_NUM++;
     }
 
     @Override
     public String toString() {
-        if (!isArray) {
+        if (isSpecial) {
             return getName() + " = getelementptr " +
                     ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
                     getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
-                    "i32 0, i32 0";
-        } else if (constDim) {
-            return getName() + " = getelementptr " +
-                    ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
-                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
-                    "i32 0, i32 " + num2;
+                    "i32 " + getOperands().get(1).getName();
         } else {
-            return getName() + " = getelementptr " +
-                    ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
-                    getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
-                    "i32 0, i32 " + getOperands().get(1).getName();
+            if (!isArray) {
+                return getName() + " = getelementptr " +
+                        ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
+                        getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
+                        "i32 0, i32 0";
+            } else if (constDim) {
+                return getName() + " = getelementptr " +
+                        ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
+                        getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
+                        "i32 0, i32 " + num2;
+            } else {
+                return getName() + " = getelementptr " +
+                        ((PointerType) getOperands().get(0).getType()).getInnerValueType() + ", " +
+                        getOperands().get(0).getType() + " " + getOperands().get(0).getName() + ", " +
+                        "i32 0, i32 " + getOperands().get(1).getName();
+            }
         }
+
     }
 }

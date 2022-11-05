@@ -51,16 +51,14 @@ public class Compiler {
         FilePrinter filePrinter = FilePrinter.getFilePrinter();
 //        TreePrinter treePrinter = new TreePrinter(root);
         // * 错误处理 error detection，将HashMap转换成有序的TreeMap，用于输出
-        ErrorDetection errorDetection = new ErrorDetection(root, allFalse);
-        TreeMap<Integer, Character> treeMap = new TreeMap<>();
-        for (Token token : allFalse.keySet()) {
-            treeMap.put(token.getLineNumber(), allFalse.get(token));
-//            System.out.println(token.getLineNumber() + " " + allFalse.get(token));
-        }
-        for (Map.Entry entry : treeMap.entrySet()) {
-            System.out.println(entry.getKey() + " " + entry.getValue());
-//            filePrinter.outPrintlnError(entry.getKey() + " " + entry.getValue());
-        }
+//        ErrorDetection errorDetection = new ErrorDetection(root, allFalse);
+//        TreeMap<Integer, Character> treeMap = new TreeMap<>();
+//        for (Token token : allFalse.keySet()) {
+//            treeMap.put(token.getLineNumber(), allFalse.get(token));
+//        }
+//        for (Map.Entry entry : treeMap.entrySet()) {
+//            System.out.println(entry.getKey() + " " + entry.getValue());
+//        }
         // * 回归测试语法分析的输出，已完成
         TreePrinter treePrinter = new TreePrinter(root);
         GenerateModule generateModule = new GenerateModule();

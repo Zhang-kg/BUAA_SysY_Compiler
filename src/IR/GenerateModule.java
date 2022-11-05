@@ -215,6 +215,7 @@ public class GenerateModule {
             } else {
                 arrayValue = new AllocaInst(currentBasicBlock, aftName, true, finalArrayType);
                 constDefSymbol.setValue(arrayValue);
+                constDefSymbol.setInitValue(initValue);
                 arrayInit(arrayValue, initValue);
             }
         }
@@ -558,8 +559,11 @@ public class GenerateModule {
                     paramSymbol.setName(befName);
                     break;
                 }
-                case ConstExp: {
+                case LBRACK: {
                     isVariable = false;
+                    break;
+                }
+                case ConstExp: {
                     ConstantInteger dimValue = parseConstExpForIR(son, currentTable);
                     dims.add(dimValue);
                     break;
@@ -883,6 +887,9 @@ public class GenerateModule {
             if (son.getTokenType() == TokenType.IDENFR) {
                 String ident = son.getTokenString();
                 identSymbol = currentTable.findIdentInAllTable(ident);
+                if (identSymbol.getType() instanceof ArrayType) {
+                    isVariable = false;
+                }
 //                if (identSymbol.isConstant()) { // ? 常数
 //                    isConstant = true;
 //                    identValue = identSymbol.getConstValue();
@@ -912,6 +919,13 @@ public class GenerateModule {
             }
         } else {            // * if LVal is Array
             if (left) {     // * if Left
+                if (identValue.getType().isPointerType()) {
+                    if (((PointerType) identValue.getType()).getInnerValueType().isPointerType()) {
+                        identValue = new LoadInst(currentBasicBlock, identValue);
+                        identValue = new GEPInst(currentBasicBlock, identValue, expValues.get(0), true);
+                        expValues.remove(0);
+                    }
+                }
                 return parseArrayLVal(identValue, expValues);
             } else {        // * not Left
                 if (isConstant) {   // ? if LVal is constant
@@ -931,13 +945,33 @@ public class GenerateModule {
                         for (Integer i : dims) {
                             identValue = ((InitValue)identValue).getMidArrayInitVal().get(i);
                         }
-                        return identValue;
+                        return ((InitValue) identValue).getValue();
                     } else {
-                        return parseArrayLVal(identValue, expValues);
+                        identValue = identSymbol.getValue();
+                        Value gepInst = parseArrayLVal(identValue, expValues);
+                        if (((PointerType)gepInst.getType()).getInnerValueType() instanceof ArrayType) {
+                            gepInst = new GEPInst(currentBasicBlock, gepInst, ConstantInteger.zero);
+                            return gepInst;
+                        } else {
+                            return new LoadInst(currentBasicBlock, gepInst);
+                        }
                     }
                 } else {
+                    if (identValue.getType().isPointerType()) {
+                        if (((PointerType) identValue.getType()).getInnerValueType().isPointerType()) {
+                            identValue = new LoadInst(currentBasicBlock, identValue);
+                            identValue = new GEPInst(currentBasicBlock, identValue, expValues.get(0), true);
+                            expValues.remove(0);
+                        }
+                    }
                     Value gepInst = parseArrayLVal(identValue, expValues);
-                    return new LoadInst(currentBasicBlock, gepInst);
+                    if (((PointerType)gepInst.getType()).getInnerValueType() instanceof ArrayType) {
+                        gepInst = new GEPInst(currentBasicBlock, gepInst, ConstantInteger.zero);
+                        return gepInst;
+                    } else {
+                        return new LoadInst(currentBasicBlock, gepInst);
+                    }
+//                    return new LoadInst(currentBasicBlock, gepInst);
                 }
             }
 
@@ -972,6 +1006,12 @@ public class GenerateModule {
     private Value parseArrayLVal(Value identValue, ArrayList<Value> expValues) {
         Value gepInst = identValue;
         for (Value expValue : expValues) {
+//            if (identValue.getType() instanceof PointerType) {
+//                if (!((PointerType) identValue.getType()).getInnerValueType().isArrayType()) {
+//                    ArrayType arrayType = new ArrayType()
+//                    gepInst.setType();
+//                }
+//            }
             gepInst = new GEPInst(currentBasicBlock, gepInst, expValue);
         }
         return gepInst;
