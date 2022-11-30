@@ -49,6 +49,22 @@ public class GEPInst extends Instruction {
         return "%GEP_NO_" + GEP_NUM++;
     }
 
+    public boolean isSpecial() {
+        return isSpecial;
+    }
+
+    public boolean isArray() {
+        return isArray;
+    }
+
+    public boolean isConstDim() {
+        return constDim;
+    }
+
+    public int getNum2() {
+        return num2;
+    }
+
     @Override
     public String toString() {
         if (isSpecial) {

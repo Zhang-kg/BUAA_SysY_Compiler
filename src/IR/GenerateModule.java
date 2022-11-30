@@ -29,30 +29,41 @@ public class GenerateModule {
     private ArrayList<ConstantString> globalString = new ArrayList<>();
     private TreeMap<String, Integer> globalIdentChangeTable  = new TreeMap<>();
     private HashSet<String> globalIdentSet = new HashSet<>();
+    private HashSet<String> bareIdentSet = new HashSet<>();
     private boolean isGlobal = true;
     private boolean inWhile = false;
     private BasicBlock whileCondBasicBlock = null;
     private BasicBlock whilePostBasicBlock = null;
 
     public String addIdent(String befName) {
+        String bareName = "";
         if (!isGlobal) {
-            if (befName.charAt(0) != '%')
+            if (befName.charAt(0) != '%') {
                 befName = "%" + befName;
+            } else {
+            }
         } else {
             if (befName.charAt(0) != '@')
                 befName = "@" + befName;
         }
+        bareName = befName.substring(1);
         String aftName = befName;
-        if (globalIdentChangeTable.containsKey(befName) || globalIdentSet.contains(befName)) {
+        String aftBareName = bareName;
+        if (globalIdentChangeTable.containsKey(befName) || globalIdentSet.contains(befName) ||
+                bareIdentSet.contains(bareName)) {
             int i = 1;
-            while (globalIdentSet.contains(aftName) || globalIdentChangeTable.containsKey(aftName)) {
+            while (globalIdentSet.contains(aftName) || globalIdentChangeTable.containsKey(aftName) ||
+                bareIdentSet.contains(aftBareName)) {
                 aftName = befName + i;
+                aftBareName = bareName + i;
                 i++;
             }
             globalIdentChangeTable.put(befName, i);
             globalIdentSet.add(aftName);
+            bareIdentSet.add(aftBareName);
         } else {
             globalIdentSet.add(befName);
+            bareIdentSet.add(bareName);
         }
         return aftName;
     }
@@ -202,6 +213,7 @@ public class GenerateModule {
                 finalArrayType = new ArrayType(finalArrayType, dimValuenum);
             }
             constDefSymbol.setType(finalArrayType);
+            constDefSymbol.setArrayLength(dimensions);
             Value arrayValue;
             if (isGlobal) {
                 arrayValue = new Value(new PointerType(finalArrayType), aftName);
@@ -335,6 +347,7 @@ public class GenerateModule {
                 zeroInitValue = new InitValue(initValues);
             }
             varDefSymbol.setType(finalArrayType);
+            varDefSymbol.setArrayLength(dimensions);
             Value arrayValue;
             if (isGlobal) {
                 arrayValue = new Value(new PointerType(finalArrayType), aftName);
@@ -381,7 +394,7 @@ public class GenerateModule {
                 arrayInit(elementValue, initValues.get(i));
             }
         } else {
-            new StoreInst(currentBasicBlock, arrayValue, arrayInitValue);
+            new StoreInst(currentBasicBlock, arrayValue, arrayInitValue.getValue());
         }
     }
 
@@ -919,7 +932,7 @@ public class GenerateModule {
             }
         } else {            // * if LVal is Array
             if (left) {     // * if Left
-                if (identValue.getType().isPointerType()) {
+                if (identValue.getType().isPointerType()) { // * 两层都是指针类型
                     if (((PointerType) identValue.getType()).getInnerValueType().isPointerType()) {
                         identValue = new LoadInst(currentBasicBlock, identValue);
                         identValue = new GEPInst(currentBasicBlock, identValue, expValues.get(0), true);
@@ -941,6 +954,7 @@ public class GenerateModule {
                             dims.add(((ConstantInteger) expValue).getValue());
                         }
                     }
+                    if (dims.size() != identSymbol.getArrayLength()) canGetNum = false;
                     if (canGetNum) {
                         for (Integer i : dims) {
                             identValue = ((InitValue)identValue).getMidArrayInitVal().get(i);

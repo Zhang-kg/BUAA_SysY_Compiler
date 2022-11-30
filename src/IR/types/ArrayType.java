@@ -23,4 +23,9 @@ public class ArrayType extends Type {
     public Type getElementType() {
         return elementType;
     }
+
+    @Override
+    public int getSize() {
+        return num * elementType.getSize();
+    }
 }

@@ -1,6 +1,10 @@
 package IR.types;
 
 public class Type {
+    public int getSize() {
+        return 4;
+    }
+
     public boolean isArrayType() {
         return false;
     }

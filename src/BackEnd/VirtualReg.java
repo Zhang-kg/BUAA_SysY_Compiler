@@ -1,42 +1,55 @@
 package BackEnd;
 
+import BackEnd.SymbolTableForMIPS.SymbolTypeForMIPS;
+
 public class VirtualReg implements Comparable {
     private String name;
     private int start;
     private int end;
-    private boolean inPhysicReg;
-    private boolean inMemory;
-    private int memoryAddress;
-    private boolean inStack;
+    private SymbolTypeForMIPS symbolType;
     private int stackOffset;
+    private int size = 4;
+
+    public VirtualReg(String name) {
+        this.name = name;
+    }
 
     public VirtualReg(int start, String name) {
         this.start = start;
         this.name = name;
     }
 
-    public void setInPhysicReg(boolean inPhysicReg) {
-        this.inPhysicReg = inPhysicReg;
-        if (inPhysicReg) {
-            inMemory = false;
-            inStack = false;
-        }
+    public VirtualReg(String name, SymbolTypeForMIPS symbolType) {
+        this.name = name;
+        this.symbolType = symbolType;
     }
 
-    public void setInStack(boolean inStack) {
-        this.inStack = inStack;
-        if (inStack) {
-            inPhysicReg = false;
-            inMemory = false;
-        }
+    public SymbolTypeForMIPS getSymbolType() {
+        return symbolType;
+    }
+
+    public void setInPhysicReg() {
+        symbolType = SymbolTypeForMIPS.PhysicsReg;
+    }
+
+    public void setInStack() {
+        symbolType = SymbolTypeForMIPS.SpillReg;
     }
 
     public void setStackOffset(int stackOffset) {
         this.stackOffset = stackOffset;
     }
 
+    public int getStackOffset() {
+        return stackOffset;
+    }
+
     public void setEnd(int end) {
         this.end = end;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
     }
 
     public int getStart() {
@@ -49,6 +62,14 @@ public class VirtualReg implements Comparable {
 
     public String getName() {
         return name;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public int getSize() {
+        return size;
     }
 
     @Override

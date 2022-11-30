@@ -36,7 +36,7 @@ public class GenerateMIPS {
         for (Map.Entry entry : stringStringTreeMap.entrySet()) {
             String name = (String) entry.getKey();
             String value = (String) entry.getValue();
-            filePrinter.outPrintlnMIPS(name + ": .asciiz \"" + value + "\"");
+            filePrinter.outPrintlnMIPS( name + ": .asciiz \"" + value + "\"");
         }
         // ? 输出代码段
         filePrinter.outPrintlnMIPS(".text");

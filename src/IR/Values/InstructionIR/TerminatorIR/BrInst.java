@@ -37,6 +37,10 @@ public class BrInst extends TerminatorInst {
         return "%BR_INST_NO_" + BR_INST_NUM++;
     }
 
+    public boolean isConditionalBranch() {
+        return conditionalBranch;
+    }
+
     @Override
     public String toString() {
         if (conditionalBranch) {

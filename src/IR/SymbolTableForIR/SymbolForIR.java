@@ -12,6 +12,7 @@ public class SymbolForIR extends SymbolRecordForIR {
     private InitValue initValue;
     private boolean isConstant = false;
     private boolean isGlobal = false;
+    private int arrayLength = 0;
 
     public SymbolForIR() {
 
@@ -71,5 +72,13 @@ public class SymbolForIR extends SymbolRecordForIR {
 
     public void setGlobal(boolean global) {
         isGlobal = global;
+    }
+
+    public void setArrayLength(int arrayLength) {
+        this.arrayLength = arrayLength;
+    }
+
+    public int getArrayLength() {
+        return arrayLength;
     }
 }

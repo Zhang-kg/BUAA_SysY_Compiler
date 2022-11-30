@@ -42,6 +42,20 @@ public class InitValue extends Value {
         return midArrayInitVal;
     }
 
+    public String genMIPSGlobalVariableInit() {
+        if (isArray) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < midArrayInitVal.size(); i++) {
+                sb.append(midArrayInitVal.get(i).genMIPSGlobalVariableInit());
+                if (i != midArrayInitVal.size() - 1)
+                    sb.append(", ");
+            }
+            return sb.toString();
+        } else {
+            return value.getName();
+        }
+    }
+
     @Override
     public String toString() {
         if (isArray) {
