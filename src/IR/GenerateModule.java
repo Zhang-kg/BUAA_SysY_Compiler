@@ -28,19 +28,31 @@ public class GenerateModule {
     private ArrayList<SymbolForIR> globalVariables = new ArrayList<>();
     private ArrayList<ConstantString> globalString = new ArrayList<>();
     private TreeMap<String, Integer> globalIdentChangeTable  = new TreeMap<>();
-    private HashSet<String> globalIdentSet = new HashSet<>();
-    private HashSet<String> bareIdentSet = new HashSet<>();
+    private static HashSet<String> globalIdentSet = new HashSet<>();
+    private static HashSet<String> bareIdentSet = new HashSet<>();
     private boolean isGlobal = true;
     private boolean inWhile = false;
     private BasicBlock whileCondBasicBlock = null;
     private BasicBlock whilePostBasicBlock = null;
+    private static final GenerateModule generateModule = new GenerateModule();
+
+    public static GenerateModule getGenerateModule() {
+        return generateModule;
+    }
+
+    public static HashSet<String> getGlobalIdentSet() {
+        return globalIdentSet;
+    }
+
+    public static HashSet<String> getBareIdentSet() {
+        return bareIdentSet;
+    }
 
     public String addIdent(String befName) {
         String bareName = "";
         if (!isGlobal) {
             if (befName.charAt(0) != '%') {
                 befName = "%" + befName;
-            } else {
             }
         } else {
             if (befName.charAt(0) != '@')
@@ -68,7 +80,7 @@ public class GenerateModule {
         return aftName;
     }
 
-    public GenerateModule() {
+    private GenerateModule() {
         rootTable = new SymbolTableForIR(null, 0);
         useArrayList = new ArrayList<>();
         declareFunctions = new HashMap<>();
@@ -370,17 +382,6 @@ public class GenerateModule {
                     arrayInit(arrayValue, initValue);
                 }
             }
-
-//            if (isInitial) {
-//                // ! 熟悉之后做一下
-//                if (!isGlobal) {
-//                    arrayInit(arrayValue, initValue);
-//                } else {
-//
-//                }
-//            } else {
-//
-//            }
             currentTable.addItem(varDefSymbol);
         }
     }
@@ -664,7 +665,7 @@ public class GenerateModule {
                             break;
                         }
                         case GETINTTK: {
-                            valueFrom = new CallInst(currentBasicBlock, declareFunctions.get("@getint"), null);
+                            valueFrom = new CallInst(currentBasicBlock, declareFunctions.get("@getint"), new ArrayList<>());
                             break;
                         }
                         case Exp: {

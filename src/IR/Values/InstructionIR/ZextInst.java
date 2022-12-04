@@ -11,6 +11,7 @@ public class ZextInst extends Instruction {
     public ZextInst(BasicBlock fatherBasicBlock, Value fromValue, Type targetType) {
         super(fatherBasicBlock, InstructionType.ZEXT, targetType, allocName());
         addOperand(fromValue);
+        fromValue.addUser(this);
         this.targetType = targetType;
     }
 

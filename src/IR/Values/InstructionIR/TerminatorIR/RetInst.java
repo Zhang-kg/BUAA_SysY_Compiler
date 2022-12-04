@@ -14,6 +14,7 @@ public class RetInst extends TerminatorInst {
         super(fatherBasicBlock, InstructionType.RET, value.getType(), allocName());
         expReturn = true;
         addOperand(value);
+        value.addUser(this);
     }
 
     public RetInst(BasicBlock fatherBasicBlock) {

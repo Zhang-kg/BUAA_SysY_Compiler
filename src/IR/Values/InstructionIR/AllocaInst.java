@@ -25,6 +25,10 @@ public class AllocaInst extends Instruction {
                 allocatedType.toString();
     }
 
+    public Type getAllocatedType() {
+        return allocatedType;
+    }
+
     private static String allocName() {
         return "%ALLOC_INST_NO_" + ALLOC_INST_NUM++;
     }

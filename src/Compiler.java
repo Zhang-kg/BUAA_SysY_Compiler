@@ -1,19 +1,15 @@
-import BackEnd.GenerateMIPS;
-import BackEnd.GenerateMIPS2;
-import ErrorDetect.ErrorDetection;
 import FileIO.BasicScanner;
 import FileIO.FilePrinter;
 import FileIO.LLVMTreePrinter;
 import FileIO.TreePrinter;
 import IR.GenerateModule;
+import IR.Optimize.Mem2Reg;
 import Lexical.LexicalAnalyser;
 import Syntax.SyntaxAnalyser;
 import TokenDefines.Token;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class Compiler {
     public static void main(String[] args) {
@@ -62,11 +58,15 @@ public class Compiler {
 //        }
         // * 回归测试语法分析的输出，已完成
         TreePrinter treePrinter = new TreePrinter(root);
-        GenerateModule generateModule = new GenerateModule();
+        GenerateModule generateModule = GenerateModule.getGenerateModule();
         generateModule.parseModule(root);
+//        LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
+        Mem2Reg mem2reg = new Mem2Reg();
+
+
         LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
 //        new GenerateMIPS();
-        new GenerateMIPS2();
+//        new GenerateMIPS2();
         filePrinter.closeOut();
     }
 }

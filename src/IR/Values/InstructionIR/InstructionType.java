@@ -34,5 +34,7 @@ public enum InstructionType {
     CALL,
     RET,
     // not type
-    NOT
+    NOT,
+    // Special type
+    PHI
 }

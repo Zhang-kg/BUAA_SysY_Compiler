@@ -21,6 +21,7 @@ public class GEPInst extends Instruction {
                 ((PointerType) pointerValue.getType()).getInnerValueType(),
                 allocName());
         addOperand(pointerValue);
+        pointerValue.addUser(this);
     }
 
     public GEPInst(BasicBlock fatherBasicBlock, Value pointerValue, Value num2) {
@@ -28,12 +29,14 @@ public class GEPInst extends Instruction {
                 new PointerType(((ArrayType)((PointerType) pointerValue.getType()).getInnerValueType()).getElementType()),
                 allocName());
         addOperand(pointerValue);
+        pointerValue.addUser(this);
         this.isArray = true;
         if (num2 instanceof ConstantInteger) {
             constDim = true;
             this.num2 = ((ConstantInteger) num2).getValue();
         } else {
             addOperand(num2);
+            num2.addUser(this);
         }
     }
 
@@ -42,7 +45,9 @@ public class GEPInst extends Instruction {
                 pointerValue.getType(), allocName());
         this.isSpecial = true;
         addOperand(pointerValue);
+        pointerValue.addUser(this);
         addOperand(num2);
+        num2.addUser(this);
     }
 
     private static String allocName() {

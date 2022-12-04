@@ -11,7 +11,9 @@ public class IcmpInst extends Instruction {
         super(fatherBasicBlock, instructionType, IntType.i1, allocIcmpInstName());
         this.instructionType = instructionType;
         this.addOperand(value1);
+        value1.addUser(this);
         this.addOperand(value2);
+        value2.addUser(this);
     }
 
     @Override

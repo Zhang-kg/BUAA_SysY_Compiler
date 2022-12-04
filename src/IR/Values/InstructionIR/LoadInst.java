@@ -10,6 +10,7 @@ public class LoadInst extends Instruction {
     public LoadInst(BasicBlock fatherBasicBlock, Value pointer) {
         super(fatherBasicBlock, InstructionType.LOAD, ((PointerType)pointer.getType()).getInnerValueType(), allocName());
         this.addOperand(pointer);
+        pointer.addUser(this);
     }
 
     @Override

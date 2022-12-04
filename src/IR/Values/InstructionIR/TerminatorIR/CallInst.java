@@ -20,6 +20,9 @@ public class CallInst extends TerminatorInst {
         super(fatherBasicBlock, InstructionType.CALL,
                 ((FunctionType)function.getType()).getReturnType(), allocName());
         this.arguments = arguments;
+        for (Value value : arguments) {
+            value.addUser(this);
+        }
         this.function = function;
     }
 

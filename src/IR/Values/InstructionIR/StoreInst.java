@@ -11,6 +11,7 @@ public class StoreInst extends Instruction {
     public StoreInst(BasicBlock fatherBasicBlock, Value pointer, Value value) {
         super(fatherBasicBlock, InstructionType.STORE, IntType.i1, allocName());
         addOperand(value);
+        value.addUser(this);
         addOperand(pointer);
     }
 

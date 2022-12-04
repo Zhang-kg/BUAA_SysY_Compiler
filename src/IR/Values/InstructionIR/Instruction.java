@@ -15,7 +15,10 @@ public class Instruction extends User {
     public Instruction(BasicBlock fatherBasicBlock, InstructionType instructionType, Type type, String name) {
         super(type, name);
         this.fatherBasicBlock = fatherBasicBlock;
-        this.fatherBasicBlock.addInstruction(this);
+        if (instructionType != InstructionType.PHI) {
+            // Phi 指令比较特殊，由phi函数决定插入哪里
+            this.fatherBasicBlock.addInstruction(this);
+        }
         this.instructionType = instructionType;
     }
 

@@ -36,4 +36,8 @@ public class Value {
     public void addUser(User user) {
         this.userArrayList.add(user);
     }
+
+    public ArrayList<User> getUserArrayList() {
+        return userArrayList;
+    }
 }

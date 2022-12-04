@@ -8,6 +8,7 @@ import IR.Values.ConstantIR.ConstantString;
 import IR.Values.Function;
 import IR.Values.InitValue;
 import IR.Values.InstructionIR.Instruction;
+import IR.Values.InstructionIR.PhiInst;
 import IR.Values.Value;
 import IR.types.ArrayType;
 import IR.types.FunctionType;
@@ -66,6 +67,12 @@ public class LLVMTreePrinter {
     private void printBasicBlock(BasicBlock basicBlock) {
         if (basicBlock.getLabel() != null) {
             filePrinter.outPrintlnLLVM("\t" + basicBlock.getLabel().getName().substring(1) + ":");
+        }
+//        if (basicBlock.getLabel().getName().equals("%Label_11")) {
+//            System.out.println(1);
+//        }
+        for (PhiInst phiInst : basicBlock.getPhiInstructions()) {
+            filePrinter.outPrintlnLLVM("\t\t" + phiInst.toString());
         }
         for (Instruction instruction : basicBlock.getInstructions()) {
             filePrinter.outPrintlnLLVM("\t\t" + instruction.toString());
