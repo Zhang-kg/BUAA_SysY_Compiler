@@ -41,6 +41,10 @@ public class BrInst extends TerminatorInst {
         return conditionalBranch;
     }
 
+    public void setConditionalBranch(boolean conditionalBranch) {
+        this.conditionalBranch = conditionalBranch;
+    }
+
     @Override
     public String toString() {
         if (conditionalBranch) {

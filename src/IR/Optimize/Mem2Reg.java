@@ -1,5 +1,6 @@
 package IR.Optimize;
 
+import FileIO.LLVMTreePrinter;
 import IR.GenerateModule;
 import IR.Module;
 import IR.Values.BasicBlock;
@@ -55,19 +56,12 @@ public class Mem2Reg {
     public Mem2Reg() {
         for (Function function : llvmModule.getFunctions()) {
             readyForMem2Reg(function);
-            genSuccPredBB(function);
-
-            genDomBB(function);
-            getIdomBB(function);
-            getDF(function);
             getAllocVariable(function);
             getDefVariableBB(function);
             insertPhiInst(function);
             variablesRenaming(function);
         }
     }
-
-
 
     public void readyForMem2Reg(Function function) {
         /*
@@ -83,174 +77,18 @@ public class Mem2Reg {
             - reachingDef关系
             - 每个value定义的instruction
          */
-        label2BasicBlock4function = new HashMap<>();
-        successorBB = new HashMap<>();
-        predecessorBB = new HashMap<>();
-        domBB = new HashMap<>();
-        idomBB = new HashMap<>();
-        domTree = new HashMap<>();
-        DF = new HashMap<>();
+        DomTreeAnalysis domTreeAnalysis = new DomTreeAnalysis(function);
+        label2BasicBlock4function = domTreeAnalysis.getLabel2BasicBlock4function();
+        successorBB = domTreeAnalysis.getSuccessorBB();
+        predecessorBB = domTreeAnalysis.getPredecessorBB();
+        domBB = domTreeAnalysis.getDomBB();
+        idomBB = domTreeAnalysis.getIdomBB();
+        domTree = domTreeAnalysis.getDomTree();
+        DF = domTreeAnalysis.getDF();
         allocVariable = new ArrayList<>();
         defVariableBB = new HashMap<>();
         valueBBMap = new HashMap<>();
-//        reachingDef = new HashMap<>();
         visited = new HashMap<>();
-        for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            label2BasicBlock4function.put(basicBlock.getLabel(), basicBlock);
-            successorBB.put(basicBlock, new HashSet<>());
-            predecessorBB.put(basicBlock, new HashSet<>());
-            domBB.put(basicBlock, new HashSet<>());
-            idomBB.put(basicBlock, basicBlock);
-            domTree.put(basicBlock, new ArrayList<>());
-            DF.put(basicBlock, new HashSet<>());
-        }
-    }
-
-    public void genSuccPredBB(Function function) {
-        boolean change = true;
-        while (change) {
-            change = false;
-            for (BasicBlock basicBlock : function.getBasicBlocks()) {
-                Iterator<Instruction> instIterator = basicBlock.getInstructions().iterator();
-                while (instIterator.hasNext()) {
-                    Instruction lastInst = instIterator.next();
-                    if (lastInst.getInstructionType() == InstructionType.BR) {
-                        // 判断直接跳转还是条件跳转：直接跳转只有一个目的基本块；条件跳转又两个目的基本块
-                        if (((BrInst)lastInst).isConditionalBranch()) {
-                            Value label1 = lastInst.getOperands().get(1);
-                            BasicBlock basicBlock1 = label2BasicBlock4function.get(label1);
-                            Value label2 = lastInst.getOperands().get(2);
-                            BasicBlock basicBlock2 = label2BasicBlock4function.get(label2);
-                            // 添加前驱基本块和后继基本块
-                            predecessorBB.get(basicBlock1).add(basicBlock);
-                            successorBB.get(basicBlock).add(basicBlock1);
-                            predecessorBB.get(basicBlock2).add(basicBlock);
-                            successorBB.get(basicBlock).add(basicBlock2);
-                        } else {
-                            Value label1 = lastInst.getOperands().get(0);
-                            BasicBlock basicBlock1 = label2BasicBlock4function.get(label1);
-                            // 添加前驱基本块和后继基本块
-                            predecessorBB.get(basicBlock1).add(basicBlock);
-                            successorBB.get(basicBlock).add(basicBlock1);
-                        }
-                        while (instIterator.hasNext()) {
-                            instIterator.next();
-                            instIterator.remove();
-                        }
-                    }
-                }
-            }
-
-            Iterator<BasicBlock> iterator = function.getBasicBlocks().iterator();
-            HashSet<BasicBlock> removeBB = new HashSet<>();
-            while (iterator.hasNext()) {
-                BasicBlock basicBlock = iterator.next();
-                if (predecessorBB.get(basicBlock).isEmpty() && basicBlock != function.getBasicBlocks().get(0)) {
-                    change = true;
-                    removeBB.add(basicBlock);
-                    iterator.remove();
-                }
-            }
-            if (change) {
-                for (BasicBlock basicBlock : function.getBasicBlocks()) {
-                    predecessorBB.get(basicBlock).removeAll(removeBB);
-                    successorBB.get(basicBlock).removeAll(removeBB);
-                }
-            }
-        }
-
-    }
-
-    public void genDomBB(Function function) {
-        BasicBlock firstBB = function.getBasicBlocks().get(0);
-        domBB.get(firstBB).add(firstBB);
-        for (int i = 1; i < function.getBasicBlocks().size(); i++) {
-            BasicBlock basicBlock = function.getBasicBlocks().get(i);
-//            if (predecessorBB.get(basicBlock).isEmpty()) {
-//                domBB.get(basicBlock).add(basicBlock);
-//            } else {
-                domBB.get(basicBlock).addAll(function.getBasicBlocks());
-//            }
-        }
-        boolean changed = true;
-        while (changed) {
-            changed = false;
-            for (int i = 1; i < function.getBasicBlocks().size(); i++) {
-//                HashSet<BasicBlock> temp = new HashSet<>();
-                HashSet<BasicBlock> temp = new HashSet<>(function.getBasicBlocks());
-                BasicBlock basicBlockI = function.getBasicBlocks().get(i);
-//                temp.add(basicBlockI);
-                for (BasicBlock basicBlockJ : predecessorBB.get(basicBlockI)) {
-                    temp.retainAll(domBB.get(basicBlockJ));
-                }
-                temp.add(basicBlockI);
-                temp.stream().sorted(Comparator.comparing(BasicBlock::hashCode));
-                domBB.get(basicBlockI).stream().sorted(Comparator.comparing(BasicBlock::hashCode));
-                if (!temp.toString().equals(domBB.get(basicBlockI).toString())) {
-                    changed = true;
-                    domBB.put(basicBlockI, temp);
-                }
-            }
-        }
-//        for (BasicBlock basicBlock : function.getBasicBlocks()) {
-//            if (predecessorBB.get(basicBlock).isEmpty()) {
-//
-//            }
-//        }
-    }
-
-    public void getIdomBB(Function function) {
-        // ! 需要对算法进行修改，改成n2级别的算法
-//        for (int y = 1; y < function.getBasicBlocks().size(); y++) {
-//            BasicBlock basicBlockY = function.getBasicBlocks().get(y);
-//            HashSet<BasicBlock> hashSetY = new HashSet<>(domBB.get(basicBlockY));
-//            hashSetY.remove(basicBlockY);
-//            for (BasicBlock basicBlockX : hashSetY) {
-//                boolean contain = false;
-//                for (BasicBlock basicBlockXOther : hashSetY) {
-//                    HashSet<BasicBlock> hashSetXOther = new HashSet<>(domBB.get(basicBlockXOther));
-//                    hashSetXOther.remove(basicBlockXOther);
-//                    if (hashSetXOther.contains(basicBlockX)) {
-//                        contain = true;
-//                    }
-//                }
-//                if (!contain) {
-//                    idomBB.put(basicBlockY, basicBlockX);
-//                    break;
-//                }
-//            }
-//        }
-        // * n2级别算法
-        for (int y = 1; y < function.getBasicBlocks().size(); y++) {
-            BasicBlock basicBlockY = function.getBasicBlocks().get(y);
-            HashSet<BasicBlock> basicBlockYDomSet = new HashSet<>(domBB.get(basicBlockY));
-            basicBlockYDomSet.remove(basicBlockY);
-            int minSize = -1;
-            BasicBlock minSizeBasicBlock = basicBlockYDomSet.iterator().next();
-            for (BasicBlock basicBlockX : basicBlockYDomSet) {
-                if (domBB.get(basicBlockX).size() > minSize) {
-                    minSizeBasicBlock = basicBlockX;
-                    minSize = domBB.get(basicBlockX).size();
-                }
-            }
-            idomBB.put(basicBlockY, minSizeBasicBlock);
-            // 方便之后正序遍历domTree使用
-            domTree.get(minSizeBasicBlock).add(basicBlockY);
-        }
-    }
-
-    public void getDF(Function function) {
-        for (BasicBlock basicBlockA : function.getBasicBlocks()) {
-            for (BasicBlock basicBlockB : successorBB.get(basicBlockA)) {
-                BasicBlock basicBlockX = basicBlockA;
-                HashSet<BasicBlock> strictDomB = new HashSet<>(domBB.get(basicBlockB));
-                strictDomB.remove(basicBlockB);
-                while (!strictDomB.contains(basicBlockX)) {
-                    DF.get(basicBlockX).add(basicBlockB);
-                    basicBlockX = idomBB.get(basicBlockX);
-                }
-            }
-        }
     }
 
     public void getAllocVariable(Function function) {
@@ -320,82 +158,6 @@ public class Mem2Reg {
 
         BasicBlock basicBlock0 = function.getBasicBlocks().get(0);
         renaming(basicBlock0, reachingDef);
-        /*
-        // 按照支配树前序遍历顺序
-        ArrayList<BasicBlock> dfsBB = dfsPreorderTraversal(basicBlock0);
-        for (BasicBlock basicBlock : dfsBB) {
-            for (PhiInst phiInst : basicBlock.getPhiInstructions()) {
-                // 可能在这里被重定义，需要进行重命名
-                // 方法和StoreInst相同
-                String originName = phiInst.getName();
-                if (allocVariable.contains(originName)) {
-                    updateReachingDef(originName, phiInst, basicBlock);
-                    String aftName = addName(originName);
-                    reachingDef.put(aftName, reachingDef.get(originName));
-                    reachingDef.put(originName, phiInst);
-                    valueBBMap.put(phiInst, basicBlock);
-                    phiInst.setName(aftName);
-                }
-            }
-            Iterator<Instruction> iterator = basicBlock.getInstructions().iterator();
-            while (iterator.hasNext()) {
-                Instruction i = iterator.next();
-                if (i instanceof LoadInst) {
-                    // load 指令是变量被使用的地方
-                    // 因此需要更新reachingDef
-                    // 并将此处对于变量v的使用改成v的reachingDef
-                    String originName = i.getOperands().get(0).getName();
-                    if (allocVariable.contains(originName)) {   // 只有alloc的变量才能继续执行
-                        updateReachingDef(originName, i, basicBlock);
-                        String loadOriginName = i.getName();
-                        ArrayList<User> users = i.getUserArrayList();
-                        for (User user : users) {   // 获得使用这个load的所有user
-                            // 需要把user中所有使用load的地方改成reachingDef
-                            ListIterator<Value> originValueIterator = user.getOperands().listIterator();
-                            while (originValueIterator.hasNext()) { // 将user中所有使用到load的地方换成新的value
-                                Value originValue = originValueIterator.next();
-                                if (originValue.getName().equals(loadOriginName)) {
-                                    originValueIterator.set(reachingDef.get(originName));
-                                }
-                            }
-                        }
-                        iterator.remove();
-                    }
-                } else if (i instanceof StoreInst) {
-                    // store 指令是变量被重定义的地方
-                    // 需要更新reachingDef
-                    // 创建新变量v‘
-                    // 把对于v的定义改成v’
-                    // v‘的reachingDef改成v的reachingDef
-                    // v的reachingDef改成v’
-                    String originName = i.getOperands().get(1).getName();
-                    if (allocVariable.contains(originName)) {   // 同样只有alloc的变量才能继续执行
-                        updateReachingDef(originName, i, basicBlock);
-                        String aftName = addName(originName);
-                        reachingDef.put(aftName, reachingDef.get(originName));
-//                        reachingDef.put(originName, phiInst);
-//                        phiInst.setName(aftName);
-                        reachingDef.put(originName, i.getOperands().get(0));
-                        valueBBMap.put(i.getOperands().get(0), basicBlock);
-                        iterator.remove();
-                    }
-                } else if (i instanceof AllocaInst) {
-                    iterator.remove();
-                }
-            }
-            // 遍历后继基本块的phi指令
-            // 将phi中使用v的地方：先更新v的reachingDef，再将v的使用换成v的reachingDef
-            for (BasicBlock succBB : successorBB.get(basicBlock)) {
-                for (PhiInst phiInst : succBB.getPhiInstructions()) {
-                    String originName = phiInst.getName();
-                    if (allocVariable.contains(originName)) {
-                        updateReachingDef(originName, phiInst, succBB);
-                        phiInst.addOperand(reachingDef.get(originName));
-                    }
-                }
-            }
-        }
-         */
     }
 
     public void renaming(BasicBlock basicBlock, HashMap<String, Value> rchDef) {
@@ -404,13 +166,6 @@ public class Mem2Reg {
         } else {
             visited.put(basicBlock, true);
         }
-        if (basicBlock.getLabel().getName().equals("%Label_14")) {
-            int a = 1;
-        }
-//        System.out.println(basicBlock.getLabel().getName());
-//        if (basicBlock.getLabel().getName().equals("%Label_9")) {
-//            System.out.println(1);
-//        }
         for (PhiInst phiInst : basicBlock.getPhiInstructions()) {
             String originName = phiInst.getOriginVariableName();
             if (allocVariable.contains(originName)) {
@@ -484,23 +239,5 @@ public class Mem2Reg {
             HashMap<String , Value> rchDefN = new HashMap<>(rchDef);
             renaming(succBB, rchDefN);
         }
-
     }
-
-    public ArrayList<BasicBlock> dfsPreorderTraversal(BasicBlock rootBB) {
-        ArrayList<BasicBlock> ans = new ArrayList<>();
-        ans.add(rootBB);
-        for (BasicBlock basicBlock : domTree.get(rootBB)) {
-            ans.addAll(dfsPreorderTraversal(basicBlock));
-        }
-        return ans;
-    }
-
-//    public void updateReachingDef(String v, Instruction i, BasicBlock basicBlock) {
-//        Value r = reachingDef.get(v);
-//        while (!(r == null || domBB.get(basicBlock).contains(valueBBMap.get(r)))) {
-//            r = reachingDef.get(r.getName());
-//        }
-//        reachingDef.put(v, r);
-//    }
 }
