@@ -77,7 +77,7 @@ public class Mem2Reg {
             - reachingDef关系
             - 每个value定义的instruction
          */
-        DomTreeAnalysis domTreeAnalysis = new DomTreeAnalysis(function);
+        DomTreeAnalysis domTreeAnalysis = new DomTreeAnalysis(function, true);
         label2BasicBlock4function = domTreeAnalysis.getLabel2BasicBlock4function();
         successorBB = domTreeAnalysis.getSuccessorBB();
         predecessorBB = domTreeAnalysis.getPredecessorBB();

@@ -10,6 +10,7 @@ import IR.types.VoidType;
 public class RetInst extends TerminatorInst {
     private static int RET_INST_NUM = 0;
     private boolean expReturn = true;
+
     public RetInst(BasicBlock fatherBasicBlock, Value value) {
         super(fatherBasicBlock, InstructionType.RET, value.getType(), allocName());
         expReturn = true;

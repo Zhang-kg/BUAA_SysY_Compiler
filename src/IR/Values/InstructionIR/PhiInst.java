@@ -29,6 +29,10 @@ public class PhiInst extends Instruction {
         bbList.add(basicBlock);
     }
 
+    public ArrayList<BasicBlock> getBbList() {
+        return bbList;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

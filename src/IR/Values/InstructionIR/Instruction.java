@@ -15,8 +15,9 @@ public class Instruction extends User {
     public Instruction(BasicBlock fatherBasicBlock, InstructionType instructionType, Type type, String name) {
         super(type, name);
         this.fatherBasicBlock = fatherBasicBlock;
-        if (instructionType != InstructionType.PHI) {
+        if (instructionType != InstructionType.PHI && instructionType != InstructionType.MOVE) {
             // Phi 指令比较特殊，由phi函数决定插入哪里
+            // MOVE 指令也比较特殊，也是另外找一个位置插入
             this.fatherBasicBlock.addInstruction(this);
         }
         this.instructionType = instructionType;

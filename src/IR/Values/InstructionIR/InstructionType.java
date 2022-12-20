@@ -36,5 +36,6 @@ public enum InstructionType {
     // not type
     NOT,
     // Special type
-    PHI
+    PHI,
+    MOVE
 }

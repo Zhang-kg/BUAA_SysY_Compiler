@@ -4,6 +4,7 @@ import FileIO.LLVMTreePrinter;
 import FileIO.TreePrinter;
 import IR.GenerateModule;
 import IR.Optimize.Mem2Reg;
+import IR.Optimize.RemovePhi;
 import Lexical.LexicalAnalyser;
 import Syntax.SyntaxAnalyser;
 import TokenDefines.Token;
@@ -62,7 +63,7 @@ public class Compiler {
         generateModule.parseModule(root);
 //        LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
         Mem2Reg mem2reg = new Mem2Reg();
-
+        RemovePhi removePhi = new RemovePhi();
 
         LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
 //        new GenerateMIPS();

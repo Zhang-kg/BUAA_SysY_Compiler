@@ -26,16 +26,17 @@ public class DomTreeAnalysis {
     // dominating frontier
     private HashMap<BasicBlock, HashSet<BasicBlock>> DF;
 
+    private boolean mem2reg;
 
-    public DomTreeAnalysis(Function function) {
-        if (function.getName().equals("@main")) {
-            System.out.println(1);
-        }
+    public DomTreeAnalysis(Function function, boolean mem2reg) {
+        // 这里发现不能所有的支配树分析都删除基本块，因为phi中也涉及到基本块，有些基本块必须保留
+        // 所以如果mem2reg是True则删除，否则不删
         readyForDomAnalysis(function);
         genSuccPredBB(function);
         genDomBB(function);
         getIdomBB(function);
         getDF(function);
+        this.mem2reg = mem2reg;
     }
 
     public HashMap<Value, BasicBlock> getLabel2BasicBlock4function() {
@@ -127,10 +128,6 @@ public class DomTreeAnalysis {
                 }
             }
 
-            if (function.getName().equals("@main")) {
-                System.out.println(1);
-            }
-
             Iterator<BasicBlock> iterator = function.getBasicBlocks().iterator();
             while (iterator.hasNext()) {
                 BasicBlock basicBlock = iterator.next();
@@ -142,10 +139,11 @@ public class DomTreeAnalysis {
             }
 
             iterator = function.getBasicBlocks().iterator();
-            while (iterator.hasNext()) {
+            while (iterator.hasNext() && mem2reg) {
                 BasicBlock basicBlock = iterator.next();
-                if (basicBlock.getInstructions().get(0).getInstructionType() == InstructionType.BR
-                    && basicBlock != function.getBasicBlocks().get(0)) { // only has a branch inst
+                if (basicBlock.getInstructions().get(0).getInstructionType() == InstructionType.BR &&
+                        basicBlock != function.getBasicBlocks().get(0) &&
+                        basicBlock.getPhiInstructions().size() == 0) { // only has a branch inst
                     BrInst brInst = (BrInst) basicBlock.getInstructions().get(0);
                     if (!brInst.isConditionalBranch()) {
                         change = true;
