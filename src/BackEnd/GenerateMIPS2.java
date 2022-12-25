@@ -487,6 +487,7 @@ public class GenerateMIPS2 {
             } else if (instructionType == IR.Values.InstructionIR.InstructionType.SDIV) {
                 currentBlock.addInstruction(new MIPSBinary(InstructionType.div, newNameReg, value1Reg, value2Num));
             } else if (instructionType == IR.Values.InstructionIR.InstructionType.SREM) {
+//                currentBlock.addInstruction(new MIPSBinary(InstructionType.div, allPhysicalRegs.get("")));
                 currentBlock.addInstruction(new MIPSBinary(InstructionType.srem, newNameReg, value1Reg, value2Num));
             }
         } else if (value1 instanceof ConstantInteger && !(value2 instanceof ConstantInteger)) {
