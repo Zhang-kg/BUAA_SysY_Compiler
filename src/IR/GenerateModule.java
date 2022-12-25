@@ -1081,7 +1081,7 @@ public class GenerateModule {
                 if (instructionType == InstructionType.ADD) {
                     return unaryExpValue;
                 } else if (instructionType == InstructionType.NOT) {
-                    return new IcmpInst(currentBasicBlock, InstructionType.EQ, ConstantInteger.zero, unaryExpValue);
+                    return new IcmpInst(currentBasicBlock, InstructionType.EQ, ConstantInteger.zero, unaryExpValue, true);
                 }
                 if (unaryExpValue instanceof ConstantInteger) {
                     if (instructionType == InstructionType.SUB) {
@@ -1228,7 +1228,7 @@ public class GenerateModule {
         if (instructionType == InstructionType.SLT || instructionType == InstructionType.SGT ||
             instructionType == InstructionType.SLE || instructionType == InstructionType.SGE ||
             instructionType == InstructionType.EQ || instructionType == InstructionType.NE) {
-            return new IcmpInst(currentBasicBlock, instructionType, value1, value2);
+            return new IcmpInst(currentBasicBlock, instructionType, value1, value2, true);
         } else {
             System.out.println("compareHelper Error");
             return null;
@@ -1308,7 +1308,7 @@ public class GenerateModule {
                 eqBasicBlock = new BasicBlock();
                 Value eqExpValue = parseEqExpForIR(eqExps.get(i), currentTable);
                 if (eqExpValue.getType() != IntType.i1) {
-                    eqExpValue = new IcmpInst(currentBasicBlock, InstructionType.NE, eqExpValue, ConstantInteger.zero);
+                    eqExpValue = new IcmpInst(currentBasicBlock, InstructionType.NE, eqExpValue, ConstantInteger.zero, true);
                 }
                 if (!currentBasicBlock.isTerminated())
                     new BrInst(currentBasicBlock, eqExpValue, eqBasicBlock.getLabel(), falseBasicBlock.getLabel());
@@ -1317,7 +1317,7 @@ public class GenerateModule {
             } else {
                 Value eqExpValue = parseEqExpForIR(eqExps.get(i), currentTable);
                 if (eqExpValue.getType() != IntType.i1) {
-                    eqExpValue = new IcmpInst(currentBasicBlock, InstructionType.NE, eqExpValue, ConstantInteger.zero);
+                    eqExpValue = new IcmpInst(currentBasicBlock, InstructionType.NE, eqExpValue, ConstantInteger.zero, true);
                 }
                 if (!currentBasicBlock.isTerminated())
                     new BrInst(currentBasicBlock, eqExpValue, trueBasicBlock.getLabel(), falseBasicBlock.getLabel());

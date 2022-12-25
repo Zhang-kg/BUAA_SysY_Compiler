@@ -7,8 +7,8 @@ import IR.types.IntType;
 public class IcmpInst extends Instruction {
     private static int ICMP_INST_NUM = 0;
     private InstructionType instructionType;
-    public IcmpInst(BasicBlock fatherBasicBlock, InstructionType instructionType, Value value1, Value value2) {
-        super(fatherBasicBlock, instructionType, IntType.i1, allocIcmpInstName());
+    public IcmpInst(BasicBlock fatherBasicBlock, InstructionType instructionType, Value value1, Value value2, boolean insert) {
+        super(fatherBasicBlock, instructionType, IntType.i1, allocIcmpInstName(), insert);
         this.instructionType = instructionType;
         this.addOperand(value1);
         value1.addUser(this);

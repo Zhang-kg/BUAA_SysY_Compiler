@@ -30,6 +30,7 @@ public class MIPSMove extends MIPSInstruction {
             rdPhiRegName = "$t1";
         } else {
             System.out.println("WRONG: MOVE RD IS NOT PHI REG OR SPILL REG");
+            return "";
         }
         String rsPhiRegName = "";
         if (rs.getSymbolType() == SymbolTypeForMIPS.PhysicsReg) {
@@ -40,6 +41,7 @@ public class MIPSMove extends MIPSInstruction {
             rsPhiRegName = "$t2";
         } else {
             System.out.println("WRONG: MOVE RS IS NOT PHI REG OR SPILL REG");
+            return "";
         }
         sb.append("move " + rdPhiRegName + ", " + rsPhiRegName + "\n");
         return sb.toString() + sbBack.toString();

@@ -174,7 +174,7 @@ public class Mem2Reg {
                 phiInst.setName(aftName);
             }
         }
-        Iterator<Instruction> iterator = basicBlock.getInstructions().iterator();
+        ListIterator<Instruction> iterator = basicBlock.getInstructions().listIterator();
         while (iterator.hasNext()) {
             Instruction i = iterator.next();
             if (i instanceof LoadInst) {
@@ -183,8 +183,22 @@ public class Mem2Reg {
                 // 并将此处对于变量v的使用改成v的reachingDef
                 String originName = i.getOperands().get(0).getName();
                 if (allocVariable.contains(originName)) {   // 只有alloc的变量才能继续执行
+                    iterator.remove();
                     String loadOriginName = i.getName();
-                    ArrayList<User> users = i.getUserArrayList();
+                    ArrayList<User> users = new ArrayList<>(i.getUserArrayList());
+//                    if (users.get(0) instanceof StoreInst) {
+//                        IcmpInst icmpInst = new IcmpInst(basicBlock, InstructionType.OR, rchDef.get(originName), rchDef.get(originName), false);
+//                        iterator.add(icmpInst);
+//                        iterator.previous();
+//                        String storeTargetName = users.get(0).getOperands().get(1).getName();
+//                        ListIterator<Value> storeListIter = users.get(0).getOperands().listIterator();
+//                        while (storeListIter.hasNext()) {
+//                            Value originValue = storeListIter.next();
+//                            if (originValue.getName().equals(loadOriginName)) {
+//                                storeListIter.set(icmpInst);
+//                            }
+//                        }
+//                    }
                     for (User user : users) {   // 获得使用这个load的所有user
                         // 需要把user中所有使用load的地方改成reachingDef
                         ListIterator<Value> originValueIterator = ((Instruction) user instanceof CallInst)?
@@ -198,7 +212,6 @@ public class Mem2Reg {
                             }
                         }
                     }
-                    iterator.remove();
                 }
             } else if (i instanceof StoreInst) {
                 // store 指令是变量被重定义的地方

@@ -45,6 +45,10 @@ public class MIPSBranch extends MIPSInstruction {
         return arguments;
     }
 
+    public String getTargetLabelName() {
+        return targetLabel.getName();
+    }
+
     // * 输出call function的时候需要先保存环境、在调jal、再恢复环境
     public String genMIPSFromMIPSInst(HashMap<String, VirtualReg> globalStringVirtualRegHashMap,
                                       RegAllocation regAllocation) {

@@ -6,6 +6,7 @@ import BackEnd.SymbolTableForMIPS.SymbolForMIPS;
 import BackEnd.SymbolTableForMIPS.SymbolTypeForMIPS;
 import FileIO.FilePrinter;
 import IR.Module;
+import IR.Optimize.MoveInst;
 import IR.SymbolTableForIR.SymbolForIR;
 import IR.Values.BasicBlock;
 import IR.Values.ConstantIR.ConstantInteger;
@@ -37,6 +38,9 @@ public class GenerateMIPS2 {
     public static HashMap<String, VirtualReg> allPhysicalRegs = new HashMap<>();
     private MIPSBlock currentBlock = null;
 //    private MIPSFunction currentFunction = null;
+
+    // 全局变量的名称,这些不参与活跃变量分析
+    private static ArrayList<String> stackVariablesName = new ArrayList<>();
 
     public GenerateMIPS2() {
         // * 设置所有物理寄存器
@@ -96,12 +100,16 @@ public class GenerateMIPS2 {
         for (ConstantString globalString : globalStrings) {
             String stringName = globalString.getName().substring(1);
             getVirtualRegInterface(stringName, SymbolTypeForMIPS.GlobalString);
+            // 添加全局变量名称, 这些不分配寄存器
+            stackVariablesName.add(stringName);
         }
         // * Virtual Reg from variables
         ArrayList<SymbolForIR> globalVariables = llvmModule.getGlobalVariables();
         for (SymbolForIR symbol : globalVariables) {
             String symbolName = symbol.getAftName().substring(1);
             getVirtualRegInterface(symbolName, SymbolTypeForMIPS.GlobalVariable);
+            // 添加全局变量名称, 这些不分配寄存器
+            stackVariablesName.add(symbolName);
         }
         // * Virtual Reg from Functions
         for (Function function : module.getFunctions()) {
@@ -114,7 +122,16 @@ public class GenerateMIPS2 {
     private void getVirtualRegFromIRFunction(Function function) {
         // ? 获得Function内部的虚拟寄存器
         // * 函数内部的寄存器分配
-        RegAllocation regAllocation = new RegAllocation();
+        RegAllocation regAllocation;
+        if (Module.isNoColor()) {
+            regAllocation = new RegAllocation();
+        } else {
+            regAllocation = new RegAllocationColor();
+            ((RegAllocationColor) regAllocation).setStackVariablesName(stackVariablesName);
+        }
+//        RegAllocation regAllocation = new RegAllocation();
+//        RegAllocationColor regAllocation = new RegAllocationColor();
+//        regAllocation.setStackVariablesName(stackVariablesName);
         HashMap<String, VirtualReg> stringVirtualRegHashMap = new HashMap<>();
         functionStringVirRegHashMap = stringVirtualRegHashMap;
         // * 获得传参虚拟寄存器
@@ -126,7 +143,10 @@ public class GenerateMIPS2 {
         }
         // * 给函数内部的regAllocation传入所有虚拟寄存器对应表
         regAllocation.setNameToRegMap(stringVirtualRegHashMap);
-        regAllocation.allocateReg();
+        if (Module.isNoColor()) {
+            regAllocation.allocateReg();
+        }
+//        regAllocation.allocateReg();
         // * 总表中添加本函数的regAllocation
         functionRegAllocation.put(function.getName().substring(1), regAllocation);
     }
@@ -154,6 +174,8 @@ public class GenerateMIPS2 {
                 getVirtualRegFromStoreInst((StoreInst) i);
             } else if (i instanceof ZextInst) {
                 getVirtualRegFromZextInst((ZextInst) i);
+            } else if (i instanceof MoveInst) {
+                getVirtualRegFromMoveInst((MoveInst) i);
             }
         }
     }
@@ -255,6 +277,11 @@ public class GenerateMIPS2 {
         if ((gepInst.isArray() && !gepInst.isConstDim()) ||
                 (gepInst.isSpecial() && !(gepInst.getOperands().get(1) instanceof ConstantInteger))) {
             value = gepInst.getOperands().get(1);
+            if (value instanceof ConstantInteger) {
+                gepInst.setConstDim(true);
+                gepInst.setNum2(((ConstantInteger) value).getValue());
+                return;
+            }
             valueName = value.getName().substring(1);
             getVirtualRegInterface(valueName, SymbolTypeForMIPS.StackReg);
         }
@@ -304,6 +331,16 @@ public class GenerateMIPS2 {
         getVirtualRegInterface(valueName, SymbolTypeForMIPS.VirtualReg);
     }
 
+    private void getVirtualRegFromMoveInst(MoveInst moveInst) {
+        instrPosition++;
+        if (!(moveInst.getSrc() instanceof ConstantInteger)) {
+            String sourceName = moveInst.getSrc().getName().substring(1);
+            getVirtualRegInterface(sourceName, SymbolTypeForMIPS.VirtualReg);
+        }
+        String destName = moveInst.getDest().getName().substring(1);
+        getVirtualRegInterface(destName, SymbolTypeForMIPS.VirtualReg);
+    }
+
     // ! main parse llvm struct part
     /**
      * 函数作用是处理IRModel，首先处理String和全局变量
@@ -333,10 +370,14 @@ public class GenerateMIPS2 {
         mipsFunction.setRegAllocation(functionRegAllocation.get(function.getName().substring(1)));
         // * 函数内部的寄存器分配
         RegAllocation regAllocation = functionRegAllocation.get(function.getName().substring(1));
+        regAllocation.setMipsFunction(mipsFunction);
         functionStringVirRegHashMap = regAllocation.getNameToRegMap();
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             MIPSBlock mipsBlock = parseIRBasicBlock(basicBlock);
             mipsFunction.addMIPSBasicBlock(mipsBlock);
+        }
+        if (!Module.isNoColor()) {
+            regAllocation.allocateReg();
         }
         return mipsFunction;
     }
@@ -367,6 +408,8 @@ public class GenerateMIPS2 {
                 parseStoreInst((StoreInst) i);
             } else if (i instanceof ZextInst) {
                 parseZextInst((ZextInst) i);
+            } else if (i instanceof MoveInst) {
+                parseMoveInst((MoveInst) i);
             }
         }
         return mipsBlock;
@@ -670,6 +713,22 @@ public class GenerateMIPS2 {
         currentBlock.addInstruction(new MIPSMove(targetReg, sourceReg));
     }
 
+    private void parseMoveInst(MoveInst moveInst) {
+        String sourceName = moveInst.getSrc().getName().substring(1);
+        String destName = moveInst.getDest().getName().substring(1);
+        VirtualReg destReg = globalStringVirtualRegHashMap.get(destName);
+        // 考虑Source为常数的情况
+        Value sourceValue = moveInst.getSrc();
+        if (sourceValue instanceof ConstantInteger) {
+            currentBlock.addInstruction(new MIPSLi(allPhysicalRegs.get("$t0"),
+                    ((ConstantInteger) sourceValue).getValue()));
+            currentBlock.addInstruction(new MIPSMove(destReg, allPhysicalRegs.get("$t0")));
+        } else {
+            VirtualReg sourceReg = globalStringVirtualRegHashMap.get(sourceName);
+            currentBlock.addInstruction(new MIPSMove(destReg, sourceReg));
+        }
+    }
+
 //    private TreeMap<String, String> parseString() {
 //        TreeMap<String, String> strings = new TreeMap<>();
 //        for (ConstantString string : llvmModule.getConstantStrings()) {
@@ -680,7 +739,8 @@ public class GenerateMIPS2 {
 
     private VirtualReg getVirtualRegInterface(String name, SymbolTypeForMIPS symbolType) {
         if (name.equals("")) {
-            System.out.println(123123);
+            // 如果出现名字为空，则说明有常数没有考虑
+            System.out.println("有常数没有考虑");
         }
         // ? 这是一个统一处理所有Virtual reg -> Physical Reg的函数
         // * 如果Virtual之前出现过，则直接返回即可，并设置setEnd，方便后面分配寄存器

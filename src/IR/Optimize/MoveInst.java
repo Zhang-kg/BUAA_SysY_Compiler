@@ -26,6 +26,7 @@ public class MoveInst extends Instruction {
 
     @Override
     public String toString() {
-        return dest.getName() + " = add " + dest.getType() + " " + src.getName() + ", 0";
+//        return dest.getName() + " = move " + dest.getType() + " " + src.getName() + ", 0";
+        return dest.getName() + " = " + src.getName();
     }
 }

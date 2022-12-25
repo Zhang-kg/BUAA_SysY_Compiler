@@ -1,10 +1,13 @@
+import BackEnd.GenerateMIPS2;
 import FileIO.BasicScanner;
 import FileIO.FilePrinter;
 import FileIO.LLVMTreePrinter;
 import FileIO.TreePrinter;
 import IR.GenerateModule;
+import IR.Module;
 import IR.Optimize.Mem2Reg;
 import IR.Optimize.RemovePhi;
+import IR.Values.Function;
 import Lexical.LexicalAnalyser;
 import Syntax.SyntaxAnalyser;
 import TokenDefines.Token;
@@ -61,13 +64,24 @@ public class Compiler {
         TreePrinter treePrinter = new TreePrinter(root);
         GenerateModule generateModule = GenerateModule.getGenerateModule();
         generateModule.parseModule(root);
+        boolean noColor = false;
+        for (Function function : Module.getMyModule().getFunctions()) {
+            if (function.getArguments() != null && function.getArguments().size() > 990) {
+                noColor = true;
+            }
+        }
+//        noColor = true;
+        Module.setNoColor(noColor);
 //        LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
-        Mem2Reg mem2reg = new Mem2Reg();
-        RemovePhi removePhi = new RemovePhi();
+        if (!noColor) {
+            Mem2Reg mem2reg = new Mem2Reg();
+            RemovePhi removePhi = new RemovePhi();
+        }
+
 
         LLVMTreePrinter llvmTreePrinter = new LLVMTreePrinter();
 //        new GenerateMIPS();
-//        new GenerateMIPS2();
+        new GenerateMIPS2();
         filePrinter.closeOut();
     }
 }

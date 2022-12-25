@@ -44,6 +44,7 @@ public class MIPSBinary extends MIPSInstruction {
             rsPhiRegName = "$t1";
         } else {    // ! wrong
             System.out.println("WRONG: BINARY RD NOT A PHYSICAL REG OR A SPILL REG OR GLOBAL VARIABLE");
+            return "";
         }
 
         if (rs.getSymbolType() == SymbolTypeForMIPS.PhysicsReg) {
@@ -62,6 +63,7 @@ public class MIPSBinary extends MIPSInstruction {
             rsPhiRegName = "$t2";
         } else {    // ! wrong
             System.out.println("WRONG: BINARY RS NOT A PHYSICAL REG, A SPILL REG OR GLOBAL VARIABLE");
+            System.out.println(rs.getSymbolType());
         }
         if (isHasImm()) {
             int imm = getImm();

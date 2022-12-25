@@ -25,7 +25,7 @@ public class MIPSLa extends MIPSInstruction {
             rdPhiRegName = regAllocation.getVirToPhi().get(rd.getName());
         } else if (rd.getSymbolType() == SymbolTypeForMIPS.SpillReg) {
             int offset = rd.getStackOffset();
-            sbBack.append("sw $t1, " + offset + "$(sp)\n");
+            sbBack.append("sw $t1, " + offset + "($sp)\n");
             rdPhiRegName = "$t1";
         } else {
             System.out.println("WRONG: LA Rd IS NOT PHI REG OR SPILL REG");

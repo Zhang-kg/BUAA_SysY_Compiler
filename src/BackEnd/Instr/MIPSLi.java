@@ -30,6 +30,7 @@ public class MIPSLi extends MIPSInstruction {
             rdPhiRegName = "$t1";
         } else {
             System.out.println("WRONG: LI RD IS NOT PHI REG OR SPILL REG");
+            return "";
         }
         sb.append("li " + rdPhiRegName + ", " + imm + "\n");
         return sb.toString() + sbBack.toString();

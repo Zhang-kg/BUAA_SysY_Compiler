@@ -16,6 +16,14 @@ public class MIPSBlock {
         this.mipsInstructions.add(instruction);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<MIPSInstruction> getMipsInstructions() {
+        return mipsInstructions;
+    }
+
     public String genMIPSFromMIPSBlock(HashMap<String, VirtualReg> globalStringVirtualRegHashMap,
                                        RegAllocation regAllocation) {
         StringBuilder sb = new StringBuilder();

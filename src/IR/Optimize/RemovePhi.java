@@ -141,7 +141,11 @@ public class RemovePhi {
                 Value dest = phiInst;
                 int j = phiInst.getBbList().indexOf(basicBlock);
                 Value src = phiInst.getOperands().get(j);
-                copySet.add(new CopyPair(src, dest));
+                CopyPair copyPair = new CopyPair(src, dest);
+                copyPair.setTargetBlock(succBB);
+                copySet.add(copyPair);
+                map.put(src, src);
+                map.put(dest, dest);
                 used_by_another.put(src, true);
             }
         }
@@ -176,7 +180,7 @@ public class RemovePhi {
                     Value temp = new Value(copyPair.dest.getType(), tempAllocName());
                     MoveInst moveInst = new MoveInst(basicBlock, copyPair.dest.getType(), temp.getName(),
                             copyPair.dest, temp);
-                    basicBlock.getInstructions().add(0, moveInst);
+                    copyPair.getTargetBlock().getInstructions().add(0, moveInst);
                     pushStackV(temp, copyPair.dest);
                 }
                 // Insert a copy operation from mat[src] to dest at the end of b
@@ -207,7 +211,7 @@ public class RemovePhi {
                 // Insert a copy from dest to a new temp t at the end of block
                 Value temp = new Value(copyPair.dest.getType(), tempAllocName());
                 MoveInst moveInst = new MoveInst(basicBlock, copyPair.dest.getType(), temp.getName(), copyPair.dest, temp);
-                basicBlock.addInstruction(moveInst);
+                basicBlock.getInstructions().add(basicBlock.getInstructions().size() - 1, moveInst);
                 // map[dest] <= t
                 map.put(copyPair.dest, temp);
                 // workList <= workList U <src, dest>

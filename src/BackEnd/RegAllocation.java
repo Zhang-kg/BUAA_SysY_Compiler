@@ -5,12 +5,17 @@ import BackEnd.SymbolTableForMIPS.SymbolTypeForMIPS;
 import java.util.*;
 
 public class RegAllocation {
+    // 这个是寄存器分配的父类，寄存器在这里分配
+    // 本文件中使用的方法不是图着色，而是基于贪心的“活动参加问题”，也没有考虑权重
     private HashMap<String, String> virToPhi = new HashMap<>();           // * virtual reg name -> physical reg name
     private HashMap<String, VirtualReg> nameToRegMap;   // * virtual reg name -> Virtual reg
     private ArrayList<String> availableRegs;
     private int totalReg;
     private int stackAllocSize = 0;
     private ArrayList<VirtualReg> inputParams;
+
+    // 设置一下MIPSFunction，主要是为了图着色前的活跃变量分析
+    private MIPSFunction mipsFunction;
 
     public RegAllocation() {
         virToPhi.put("$v0", "$v0");
@@ -49,6 +54,15 @@ public class RegAllocation {
 
     public HashMap<String, VirtualReg> getNameToRegMap() {
         return nameToRegMap;
+    }
+
+    // 设置和去除MIPSFunction，图着色使用
+    public void setMipsFunction(MIPSFunction mipsFunction) {
+        this.mipsFunction = mipsFunction;
+    }
+
+    public MIPSFunction getMipsFunction() {
+        return mipsFunction;
     }
 
     public void setInputParams(ArrayList<VirtualReg> inputParams) {
@@ -119,8 +133,16 @@ public class RegAllocation {
         return totalReg;
     }
 
+    public void setTotalReg(int totalReg) {
+        this.totalReg = totalReg;
+    }
+
     public int getStackAllocSize() {
         return stackAllocSize;
+    }
+
+    public void setStackAllocSize(int stackAllocSize) {
+        this.stackAllocSize = stackAllocSize;
     }
 
     public VirtualReg getVirtualRegByName(String name) {

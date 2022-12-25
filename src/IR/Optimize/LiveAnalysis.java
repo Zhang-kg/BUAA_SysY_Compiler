@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 public class LiveAnalysis { // * 活跃变量分析
     private HashMap<BasicBlock, HashSet<String>> liveIn = new HashMap<>();
@@ -169,6 +170,13 @@ public class LiveAnalysis { // * 活跃变量分析
                     }
                     String defName = i.getName();
                     addVarToDefSet(basicBlock, defName);
+                } else if (i instanceof MoveInst) {
+                    if (!(((MoveInst) i).getSrc() instanceof ConstantInteger)) {
+                        String useName = ((MoveInst) i).getSrc().getName();
+                        addVarToUseSet(basicBlock, useName);
+                    }
+                    String defName = i.getName();
+                    addVarToDefSet(basicBlock, defName);
                 }
             }
         }
@@ -185,6 +193,7 @@ public class LiveAnalysis { // * 活跃变量分析
     }
 
     public void analysisInOut(Function function) {
+        printDefUseSetForDebug(function);
         boolean changed = true;
         while (changed) {
             changed = false;
@@ -210,11 +219,32 @@ public class LiveAnalysis { // * 活跃变量分析
         }
     }
 
+    public void printDefUseSetForDebug(Function function) {
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            System.out.println(basicBlock.getLabel().getName());
+            System.out.println("\tDef:");
+            for (String s : def.get(basicBlock)) {
+                System.out.println("\t\t" + s);
+            }
+            System.out.println("\tUse:");
+            for (String s : use.get(basicBlock)) {
+                System.out.println("\t\t" + s);
+            }
+        }
+    }
+
     private boolean isChanged(boolean changed, BasicBlock basicBlock, HashSet<String> tempSet,
                               HashMap<BasicBlock, HashSet<String>> liveSet) {
-        tempSet.stream().sorted();
-        liveSet.get(basicBlock).stream().sorted();
-        if (!tempSet.toString().equals(liveSet.get(basicBlock).toString())) {
+//        tempSet.stream().sorted();
+//        liveSet.get(basicBlock).stream().sorted();
+        String stream1 = tempSet.stream().sorted().collect(Collectors.joining());
+        String stream2 = liveSet.get(basicBlock).stream().sorted().collect(Collectors.joining());
+        if (!stream1.equals(stream2)) {
+            {   // print for debug;
+                System.out.println("\n\n1" + basicBlock.getLabel().getName());
+                System.out.println(liveSet.get(basicBlock).toString());
+                System.out.println(tempSet.toString());
+            }
             changed = true;
             liveSet.get(basicBlock).clear();
             liveSet.get(basicBlock).addAll(tempSet);

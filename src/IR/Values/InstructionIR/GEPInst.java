@@ -66,6 +66,14 @@ public class GEPInst extends Instruction {
         return constDim;
     }
 
+    public void setConstDim(boolean constDim) {
+        this.constDim = constDim;
+    }
+
+    public void setNum2(int num2) {
+        this.num2 = num2;
+    }
+
     public int getNum2() {
         return num2;
     }

@@ -23,6 +23,15 @@ public class Instruction extends User {
         this.instructionType = instructionType;
     }
 
+    public Instruction(BasicBlock fatherBasicBlock, InstructionType instructionType, Type type, String name, boolean insert) {
+        super(type, name);
+        this.fatherBasicBlock = fatherBasicBlock;
+        if (insert) {
+            this.fatherBasicBlock.addInstruction(this);
+        }
+        this.instructionType = instructionType;
+    }
+
     public InstructionType getInstructionType() {
         return instructionType;
     }

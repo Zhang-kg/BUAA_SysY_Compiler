@@ -40,6 +40,7 @@ public class MIPSComp extends MIPSInstruction {
             rdPhiRegName = "$t1";
         } else {    // ! wrong
             System.out.println("WRONG: COMP RD NOT A PHYSICAL REG OR A SPILL REG");
+            return "";
         }
         if (rs.getSymbolType() == SymbolTypeForMIPS.PhysicsReg) {
             rsPhiRegName = regAllocation.getVirToPhi().get(rs.getName());

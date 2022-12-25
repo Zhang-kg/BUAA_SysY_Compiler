@@ -9,6 +9,7 @@ import IR.Values.InstructionIR.TerminatorIR.BrInst;
 import IR.Values.Value;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DomTreeAnalysis {
     private Module llvmModule = Module.getMyModule();
@@ -31,12 +32,13 @@ public class DomTreeAnalysis {
     public DomTreeAnalysis(Function function, boolean mem2reg) {
         // 这里发现不能所有的支配树分析都删除基本块，因为phi中也涉及到基本块，有些基本块必须保留
         // 所以如果mem2reg是True则删除，否则不删
+        this.mem2reg = mem2reg;
         readyForDomAnalysis(function);
         genSuccPredBB(function);
         genDomBB(function);
         getIdomBB(function);
         getDF(function);
-        this.mem2reg = mem2reg;
+
     }
 
     public HashMap<Value, BasicBlock> getLabel2BasicBlock4function() {

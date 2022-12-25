@@ -17,6 +17,7 @@ public class Module {
     private ArrayList<ConstantString> constantStrings;
     private ArrayList<Function> functions;
     private BasicBlock globalBasicBlock;
+    private static boolean noColor;
 
 
     private static Module myModule = new Module();
@@ -27,6 +28,14 @@ public class Module {
         globalBasicBlock = new BasicBlock();
         constantStrings = new ArrayList<>();
 //        llvmSymbolTable = new LLVMSymbolTable();
+    }
+
+    public static void setNoColor(boolean noColor) {
+        Module.noColor = noColor;
+    }
+
+    public static boolean isNoColor() {
+        return noColor;
     }
 
     public static Module getMyModule() {
