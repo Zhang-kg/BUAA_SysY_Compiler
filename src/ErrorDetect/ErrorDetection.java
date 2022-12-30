@@ -145,6 +145,7 @@ public class ErrorDetection {
     private void detectVarDef(Token varDef, SymbolTable currentTable, SymbolTableItem typeAttributes) {
         ArrayList<Token> sons = varDef.getSons();
         SymbolTableItem attributes = new SymbolTableItem();
+//        ArrayList<SymbolTableItem>
         int arrayDimensions = 0;
         for (Token son : sons) {
             TokenType tokenType = son.getTokenType();

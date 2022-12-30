@@ -14,6 +14,7 @@ public class SymbolTableItem extends SymbolRecord {
 //    private ArrayList<Integer> values;  // for array [2][3] = {{1, 2, 3}, {4, 5, 6}} ==> [1, 2, 3, 4, 5, 6]
 //    private ArrayList<Integer> dimensions; // for array [2][3] ==> [2, 3]
     private int dimensions = 0;
+    private int arrayDefineValueNum = 0;
 //    private ArrayList<SymbolTableItem> arrayInitVal = new ArrayList<>();
     // for function
     private ArrayList<SymbolTableItem> funcParams = new ArrayList<>();
