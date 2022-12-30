@@ -1,0 +1,37 @@
+declare i32 @getint()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+@STRCON_NO_0 = constant [11 x i8] c"Move from \00"
+@STRCON_NO_1 = constant [5 x i8] c" to \00"
+@STRCON_NO_2 = constant [2 x i8] c"\0a\00"
+@STRCON_NO_3 = constant [10 x i8] c"20373493\0a\00"
+define void @hanoi(i32 %from, i32 %via, i32 %to, i32 %t) {
+	Label_4:
+		%ICMP_INST_0 = icmp eq i32 %t, 0
+		br i1 %ICMP_INST_0, label %Label_6, label %Label_7
+	Label_6:
+		ret void
+	Label_7:
+		%BINARY_INST_NO_0 = sub i32 %t, 1
+		call void @hanoi(i32 %from, i32 %to, i32 %via, i32 %BINARY_INST_NO_0)
+		%GEP_NO_0 = getelementptr [11 x i8], [11 x i8]* @STRCON_NO_0, i32 0, i32 0
+		call void @putstr(i8* %GEP_NO_0)
+		call void @putint(i32 %from)
+		%GEP_NO_1 = getelementptr [5 x i8], [5 x i8]* @STRCON_NO_1, i32 0, i32 0
+		call void @putstr(i8* %GEP_NO_1)
+		call void @putint(i32 %to)
+		%GEP_NO_2 = getelementptr [2 x i8], [2 x i8]* @STRCON_NO_2, i32 0, i32 0
+		call void @putstr(i8* %GEP_NO_2)
+		%BINARY_INST_NO_1 = sub i32 %t, 1
+		call void @hanoi(i32 %via, i32 %from, i32 %to, i32 %BINARY_INST_NO_1)
+		ret void
+}
+define i32 @main() {
+	Label_8:
+		%CALL_INST_NO_7 = call i32 @getint()
+		%GEP_NO_3 = getelementptr [10 x i8], [10 x i8]* @STRCON_NO_3, i32 0, i32 0
+		call void @putstr(i8* %GEP_NO_3)
+		call void @hanoi(i32 1, i32 2, i32 3, i32 %CALL_INST_NO_7)
+		ret i32 0
+}

@@ -1,0 +1,597 @@
+.data
+a: .word 0
+b: .word 0
+c: .word 0
+d: .word 0
+e: .word 0
+i: .word 0
+STRCON_NO_0: .asciiz "glo_i = "
+STRCON_NO_1: .asciiz "\n"
+STRCON_NO_2: .asciiz "sum = "
+STRCON_NO_3: .asciiz "\n"
+STRCON_NO_4: .asciiz "main_i = "
+STRCON_NO_5: .asciiz "\n"
+STRCON_NO_6: .asciiz "\n"
+.text
+jal main
+li $v0, 10
+syscall
+getint:
+li $v0, 5
+syscall
+jr $ra
+
+putstr:
+lw $a0, 0($sp)
+li $v0, 4
+syscall
+jr $ra
+
+putint:
+lw $a0, 0($sp)
+li $v0, 1
+syscall
+jr $ra
+
+func0:
+addi $sp, $sp, 0
+lw $a2, 0($sp)
+lw $v1, 4($sp)
+Label_4:
+addu $a1, $a2, $v1
+div $v1, $a1, 128
+mfhi $v1
+move $v0, $v1
+addi $sp, $sp, 0
+jr $ra
+func1:
+addi $sp, $sp, 0
+Label_6:
+lw $a1, i
+addiu $v1, $a1, 1
+sw $v1, i
+lw $v1, i
+move $v0, $v1
+addi $sp, $sp, 0
+jr $ra
+func2:
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a2, 4($sp)
+Label_7:
+div $a1, $v1, $a2
+mfhi $a1
+seq $v1, $a1, 0
+beqz $v1, Label_9
+j Label_8
+Label_8:
+li $v0, 1
+addi $sp, $sp, 0
+jr $ra
+Label_9:
+li $v0, 0
+addi $sp, $sp, 0
+jr $ra
+func3:
+addi $sp, $sp, 0
+Label_10:
+lw $a1, i
+la $v1, STRCON_NO_0
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $a1, 0($sp)
+jal putint
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+la $v1, STRCON_NO_1
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+li $t0, 0
+move $t6, $t0
+move $t9, $t6
+move $t4, $t9
+move $t5, $t4
+move $v1, $t5
+move $a3, $v1
+j Label_11
+Label_11:
+lw $a2, i
+slti $a1, $a2, 10000
+beqz $a1, Label_13
+j Label_12
+Label_12:
+lw $v1, a
+sll $a1, $v1, 2
+sll $v1, $a1, 5
+lw $a2, a
+mul $a1, $v1, $a2
+lw $a2, a
+div $v1, $a1, $a2
+sra $t3, $v1, 4
+srl $t3, $t3, 27
+addu $t3, $t3, $v1
+sra $a1, $t3, 5
+lw $v1, b
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -8
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+jal func0
+addi $sp, $sp, 8
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+move $v1, $v0
+sw $v1, b
+lw $a2, a
+sll $v1, $a2, 2
+lw $a3, b
+addu $a2, $v1, $a3
+lw $v1, c
+addu $t7, $a2, $v1
+lw $a2, a
+sll $v1, $a2, 2
+lw $a3, b
+addu $a2, $v1, $a3
+lw $v1, c
+addu $a3, $a2, $v1
+lw $v1, d
+addu $t8, $a3, $v1
+lw $v1, a
+sll $a2, $v1, 2
+lw $v1, b
+addu $a3, $a2, $v1
+lw $v1, c
+addu $a2, $a3, $v1
+lw $v1, d
+addu $a3, $a2, $v1
+lw $v1, e
+addu $t5, $a3, $v1
+lw $a2, a
+sll $v1, $a2, 2
+lw $a3, b
+addu $a2, $v1, $a3
+lw $a3, c
+addu $v1, $a2, $a3
+lw $a3, d
+addu $a2, $v1, $a3
+lw $v1, e
+addu $t6, $a2, $v1
+lw $v1, a
+sll $a2, $v1, 2
+lw $v1, b
+addu $a3, $a2, $v1
+lw $v1, c
+addu $a2, $a3, $v1
+lw $v1, d
+addu $a3, $a2, $v1
+lw $v1, e
+addu $a2, $a3, $v1
+lw $v1, i
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -8
+sw $v1, 0($sp)
+li $t0, 1000
+sw $t0, 4($sp)
+jal func2
+addi $sp, $sp, 8
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+move $a3, $v0
+sne $v1, $a3, 0
+beqz $v1, Label_15
+j Label_14
+Label_14:
+addu $v1, $t7, $t8
+addu $a3, $v1, $t5
+addu $t4, $a3, $t6
+addu $v1, $t4, $a2
+la $a3, STRCON_NO_2
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $a3, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putint
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+la $v1, STRCON_NO_3
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+j Label_15
+Label_15:
+lw $v1, i
+addi $sp, $sp, -44
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $a2, 8($sp)
+sw $a3, 12($sp)
+sw $t4, 16($sp)
+sw $t5, 20($sp)
+sw $t6, 24($sp)
+sw $t7, 28($sp)
+sw $t8, 32($sp)
+sw $t9, 36($sp)
+sw $ra, 40($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal func1
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $a2, 8($sp)
+lw $a3, 12($sp)
+lw $t4, 16($sp)
+lw $t5, 20($sp)
+lw $t6, 24($sp)
+lw $t7, 28($sp)
+lw $t8, 32($sp)
+lw $t9, 36($sp)
+lw $ra, 40($sp)
+addi $sp, $sp, 44
+move $v1, $v0
+move $t9, $t8
+move $a3, $a1
+move $v1, $t5
+move $t5, $t6
+move $t4, $a2
+move $t6, $t7
+j Label_11
+Label_13:
+addu $a1, $t6, $t9
+addu $a2, $a1, $v1
+addu $v1, $a2, $t5
+addu $a1, $v1, $t4
+move $v0, $a1
+addi $sp, $sp, 0
+jr $ra
+main:
+addi $sp, $sp, 0
+Label_16:
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal getint
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+sw $v1, a
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal getint
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+sw $v1, b
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal getint
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+sw $v1, c
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal getint
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+sw $v1, d
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal getint
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+sw $v1, e
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal getint
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+la $a1, STRCON_NO_4
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, -4
+sw $a1, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putint
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+la $v1, STRCON_NO_5
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, 0
+jal func3
+addi $sp, $sp, 0
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+move $v1, $v0
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putint
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+la $v1, STRCON_NO_6
+addi $sp, $sp, -12
+sw $v1, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 8($sp)
+addi $sp, $sp, -4
+sw $v1, 0($sp)
+jal putstr
+addi $sp, $sp, 4
+lw $v1, 0($sp)
+lw $a1, 4($sp)
+lw $ra, 8($sp)
+addi $sp, $sp, 12
+li $v0, 0
+addi $sp, $sp, 0
+jr $ra
+

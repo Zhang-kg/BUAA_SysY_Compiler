@@ -1,0 +1,17 @@
+declare i32 @getint()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+declare i32 @main() {
+%Label_4:
+%a = alloca i32
+store i32 1, i32* %a
+%LOAD_NO_0 = load i32, i32* %a
+%BINARY_INST_NO_0 = eq i32 %LOAD_NO_0, 1
+br i1 %BINARY_INST_NO_0 label %Label_6 label %Label_8
+%Label_6:
+store i32 2, i32* %a
+br label %Label_8
+%Label_8:
+ret i32 1
+}
